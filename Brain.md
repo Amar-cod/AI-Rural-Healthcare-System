@@ -21,10 +21,12 @@ Status: Completed on 2026-08-28 — Initialized client and server, configured Ta
 
 ## Phase 1 — Auth & Role Foundation
 **Goal:** All three roles can sign up/log in and land on an empty dashboard shell.
-- [ ] `User` model + signup/login/JWT middleware.
-- [ ] Role-based route protection (frontend route guards + backend middleware).
-- [ ] Patient signup, Doctor signup (goes to "pending" state), Admin seeded manually (not public signup).
-- [ ] Empty dashboard shells per role, styled per `DESIGN.md` role accents.
+- [x] `User` model + signup/login/JWT middleware.
+- [x] Role-based route protection (frontend route guards + backend middleware).
+- [x] Patient signup, Doctor signup (goes to "pending" state), Admin seeded manually (not public signup).
+- [x] Empty dashboard shells per role, styled per `DESIGN.md` role accents.
+
+Status: Completed on 2026-08-28 — Built Auth System, JWT middleware, Route guards, and seed script.
 
 **Done when:** You can register as a patient, register as a doctor (lands on "verification pending" screen), and log in as a seeded admin.
 
