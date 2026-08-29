@@ -1,15 +1,128 @@
-import { useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import api from '../../lib/axios';
+import { io } from 'socket.io-client';
 
 const PatientDashboard = () => {
   const { user, logout } = useContext(AuthContext);
+  const [appointments, setAppointments] = useState([]);
+  const [queueEntry, setQueueEntry] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get('/appointments');
+      setAppointments(res.data);
+    } catch (err) {
+      console.error('Failed to fetch appointments', err);
+    }
+  };
+
+  const handleJoinQueue = async (appointment) => {
+    try {
+      const res = await api.post('/queue/join', {
+        doctorId: appointment.doctorId._id,
+        appointmentId: appointment._id
+      });
+      setQueueEntry(res.data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to join queue');
+    }
+  };
+
+  useEffect(() => {
+    if (queueEntry) {
+      const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
+      
+      socket.emit('join_queue_room', queueEntry.doctorId);
+      
+      socket.on('queueUpdated', async () => {
+        // Queue changed, let's re-fetch the queue to find our exact position
+        try {
+          const res = await api.get(`/queue/${queueEntry.doctorId}`);
+          const myEntry = res.data.find(q => q._id === queueEntry._id);
+          if (myEntry) {
+            setQueueEntry(myEntry);
+          } else {
+            // We are no longer in the active queue (maybe status changed to done)
+            setQueueEntry(null);
+          }
+        } catch (err) {
+          console.error('Failed to refresh queue status', err);
+        }
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [queueEntry]);
 
   return (
     <div className="min-h-screen bg-accent-soft-blue p-8">
-      <div className="max-w-4xl mx-auto bg-bg-card p-6 rounded-2xl shadow-sm">
-        <h1 className="text-2xl font-bold text-text-primary mb-4">Patient Dashboard</h1>
-        <p className="mb-4">Welcome, {user?.name}</p>
-        <button onClick={logout} className="bg-danger text-white px-4 py-2 rounded-md">Logout</button>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-8 bg-bg-card p-6 rounded-2xl shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Patient Dashboard</h1>
+            <p className="text-text-secondary mt-1">Welcome back, {user?.name}</p>
+          </div>
+          <div className="space-x-4">
+            <button onClick={() => navigate('/patient/find-doctor')} className="bg-brand-primary text-white px-4 py-2 rounded-md hover:bg-brand-secondary transition">
+              Find a Doctor
+            </button>
+            <button onClick={logout} className="bg-danger text-white px-4 py-2 rounded-md">Logout</button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Upcoming Appointments */}
+          <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
+            <h2 className="text-xl font-bold mb-4">Upcoming Appointments</h2>
+            {appointments.length === 0 ? (
+              <p className="text-text-secondary">No upcoming appointments.</p>
+            ) : (
+              <div className="space-y-4">
+                {appointments.map(apt => (
+                  <div key={apt._id} className="border border-border-color p-4 rounded-xl">
+                    <p className="font-bold">Dr. {apt.doctorId?.name}</p>
+                    <p className="text-sm text-text-secondary capitalize">{apt.type} • {apt.date} • {apt.timeSlot}</p>
+                    <p className="text-xs font-semibold text-priority-routine mt-1 uppercase">Status: {apt.status}</p>
+                    
+                    {!queueEntry && (
+                      <button 
+                        onClick={() => handleJoinQueue(apt)}
+                        className="mt-3 w-full bg-brand-primary text-white py-1 rounded-md text-sm hover:bg-brand-secondary transition"
+                      >
+                        Join Today's Queue
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Live Queue Status */}
+          <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
+            <h2 className="text-xl font-bold mb-4">Live Queue Status</h2>
+            {!queueEntry ? (
+              <p className="text-text-secondary">You are not currently in a queue.</p>
+            ) : (
+              <div className="text-center p-6 bg-accent-soft-blue rounded-xl border border-blue-200">
+                <p className="text-lg font-medium text-text-secondary mb-2">Your Position in Line</p>
+                <p className="text-5xl font-bold text-brand-primary mb-4">#{queueEntry.position}</p>
+                <div className="inline-block px-4 py-1 bg-white rounded-full text-sm font-semibold uppercase text-brand-secondary shadow-sm">
+                  {queueEntry.status === 'waiting' ? 'Waiting' : 'In Consultation'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

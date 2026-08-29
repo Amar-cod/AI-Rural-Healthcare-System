@@ -49,10 +49,10 @@ Status: Completed on 2026-08-29 — Built DoctorProfile schema, API endpoints fo
 
 ## Phase 3 — Appointments, Queue & Patient Core
 **Goal:** Patients can find, book, and queue.
-- [ ] Doctor directory + filters (specialization, availability).
-- [ ] Appointment booking (date/time slot selection).
-- [ ] Queue join + live position (Socket.IO push).
-- [ ] Patient dashboard: upcoming appointment card, queue status card.
+- [x] Doctor directory + filters (specialization, availability).
+- [x] Appointment booking (date/time slot selection).
+- [x] Queue join + live position (Socket.IO push).
+- [x] Patient dashboard: upcoming appointment card, queue status card.
 
 **Done when:** A patient can pick a doctor, book a slot or join a queue, and see live status update.
 
