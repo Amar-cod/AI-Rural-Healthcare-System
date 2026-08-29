@@ -71,7 +71,10 @@ const PatientDashboard = () => {
             <h1 className="text-2xl font-bold text-text-primary">Patient Dashboard</h1>
             <p className="text-text-secondary mt-1">Welcome back, {user?.name}</p>
           </div>
-          <div className="space-x-4">
+          <div className="space-x-3">
+            <button onClick={() => navigate('/patient/ai-assistant')} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
+              🩺 AI Symptom Check
+            </button>
             <button onClick={() => navigate('/patient/find-doctor')} className="bg-brand-primary text-white px-4 py-2 rounded-md hover:bg-brand-secondary transition">
               Find a Doctor
             </button>

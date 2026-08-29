@@ -6,6 +6,7 @@ import Login from './features/auth/Login';
 import Register from './features/auth/Register';
 import PatientDashboard from './features/patient/Dashboard';
 import FindDoctor from './features/patient/FindDoctor';
+import AIAssistant from './features/patient/AIAssistant';
 import DoctorDashboard from './features/doctor/Dashboard';
 import AdminDashboard from './features/admin/Dashboard';
 
@@ -22,6 +23,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
             <Route path="/patient/dashboard" element={<PatientDashboard />} />
             <Route path="/patient/find-doctor" element={<FindDoctor />} />
+            <Route path="/patient/ai-assistant" element={<AIAssistant />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['doctor']} />}>

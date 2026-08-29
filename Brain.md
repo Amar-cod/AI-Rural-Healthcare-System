@@ -60,12 +60,15 @@ Status: Completed on 2026-08-29 — Built DoctorProfile schema, API endpoints fo
 
 ## Phase 4 — AI Assistant + Voice + Priority Engine
 **Goal:** The centerpiece feature — this is what will impress judges most, budget real time here.
-- [ ] `geminiService.js`: structured prompt, strict JSON response contract (see `ARCHITECTURE.md §6`).
-- [ ] Chat UI with disclaimer banner, mic button (Web Speech API `SpeechRecognition`), spoken responses (`SpeechSynthesis`).
-- [ ] `AISession` model saving conversation + summary + red flags + suggested priority.
-- [ ] Hand-off: session summary appears in doctor's Priority Queue, sorted High → Medium → Routine.
-- [ ] Doctor can override priority (`finalPriority` field).
-- [ ] (Stretch) Emergency SOS screen if red flags are severe and no doctor is available.
+- [x] `geminiService.js`: structured prompt, strict JSON response contract (see `ARCHITECTURE.md §6`).
+- [x] Chat UI with disclaimer banner, mic button (Web Speech API `SpeechRecognition`), spoken responses (`SpeechSynthesis`).
+- [x] `AISession` model saving conversation + summary + red flags + suggested priority.
+- [x] Hand-off: session summary appears in doctor's Priority Queue, sorted High → Medium → Routine.
+- [x] Doctor can override priority (`finalPriority` field).
+- [x] Rate-limited `/api/ai/chat` (20 req/min) to protect free Gemini quota.
+- [x] Emergency banner for high-priority red-flag symptoms.
+
+Status: Completed on 2026-08-30 — Built Gemini integration with safety-first system prompt, AISession + Consultation models, rate-limited AI chat endpoint, full chat UI with voice I/O and disclaimer banners, and Doctor priority queue with override capability.
 
 **Done when:** A patient describes symptoms by voice or text, gets a priority-tagged summary, and it appears correctly sorted on the doctor's queue.
 

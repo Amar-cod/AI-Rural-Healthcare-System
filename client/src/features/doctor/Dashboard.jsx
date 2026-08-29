@@ -8,7 +8,9 @@ const DoctorDashboard = () => {
   const [profile, setProfile] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedConsultation, setExpandedConsultation] = useState(null);
   const [formData, setFormData] = useState({
     specialization: '',
     qualifications: '',
@@ -26,6 +28,7 @@ const DoctorDashboard = () => {
       if (res.data?.verificationStatus === 'approved') {
         fetchAppointments();
         fetchQueue(user._id);
+        fetchConsultations();
       }
     } catch (err) {
       console.error(err);
@@ -49,6 +52,15 @@ const DoctorDashboard = () => {
       setQueue(res.data);
     } catch (err) {
       console.error('Failed to fetch queue', err);
+    }
+  };
+
+  const fetchConsultations = async () => {
+    try {
+      const res = await api.get('/consultations');
+      setConsultations(res.data);
+    } catch (err) {
+      console.error('Failed to fetch consultations', err);
     }
   };
 
@@ -85,6 +97,21 @@ const DoctorDashboard = () => {
     } catch (err) {
       alert('Failed to update queue status');
     }
+  };
+
+  const handleOverridePriority = async (consultationId, newPriority) => {
+    try {
+      await api.patch(`/consultations/${consultationId}/priority`, { finalPriority: newPriority });
+      fetchConsultations();
+    } catch (err) {
+      alert('Failed to update priority');
+    }
+  };
+
+  const priorityConfig = {
+    high: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', badge: 'bg-red-600', label: '🔴 High' },
+    medium: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300', badge: 'bg-amber-500', label: '🟡 Medium' },
+    routine: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', badge: 'bg-green-600', label: '🟢 Routine' }
   };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
@@ -133,54 +160,141 @@ const DoctorDashboard = () => {
             <p><strong>License Number:</strong> {profile.licenseNumber}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Live Queue */}
+          <div className="space-y-6">
+            {/* AI Priority Queue — the centerpiece */}
             <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-              <h2 className="text-xl font-bold mb-4">Live Patient Queue</h2>
-              {queue.length === 0 ? (
-                <p className="text-text-secondary">Your queue is currently empty.</p>
+              <h2 className="text-xl font-bold mb-4">🧠 AI Triage Priority Queue</h2>
+              <p className="text-sm text-text-secondary mb-4">Patient sessions triaged by AI, sorted by urgency. You can override the priority.</p>
+              {consultations.length === 0 ? (
+                <p className="text-text-secondary">No patient sessions waiting for review.</p>
               ) : (
                 <div className="space-y-3">
-                  {queue.map(entry => (
-                    <div key={entry._id} className={`p-4 rounded-xl border ${entry.status === 'in-consult' ? 'border-brand-primary bg-blue-50' : 'border-border-color'}`}>
-                      <div className="flex justify-between items-center mb-2">
-                        <p className="font-bold">
-                          <span className="text-brand-secondary mr-2">#{entry.position}</span>
-                          {entry.patientId?.name}
-                        </p>
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase ${entry.status === 'in-consult' ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-700'}`}>
-                          {entry.status}
-                        </span>
-                      </div>
-                      <div className="flex space-x-2 mt-3">
-                        {entry.status === 'waiting' && (
-                          <button onClick={() => handleUpdateQueueStatus(entry._id, 'in-consult')} className="text-sm bg-brand-primary text-white px-3 py-1 rounded-md">Start Consult</button>
+                  {consultations.map(c => {
+                    const session = c.aiSessionId;
+                    const pc = priorityConfig[c.finalPriority] || priorityConfig.routine;
+                    const isExpanded = expandedConsultation === c._id;
+
+                    return (
+                      <div key={c._id} className={`rounded-xl border-2 overflow-hidden ${pc.border}`}>
+                        {/* Header */}
+                        <div 
+                          className={`p-4 cursor-pointer flex items-center justify-between ${pc.bg}`}
+                          onClick={() => setExpandedConsultation(isExpanded ? null : c._id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <span className={`px-3 py-1 rounded-full text-white text-xs font-bold uppercase ${pc.badge}`}>
+                              {c.finalPriority}
+                            </span>
+                            <div>
+                              <p className="font-bold text-text-primary">{c.patientId?.name}</p>
+                              <p className="text-xs text-text-secondary">{new Date(c.createdAt).toLocaleString()}</p>
+                            </div>
+                          </div>
+                          <span className="text-lg">{isExpanded ? '▲' : '▼'}</span>
+                        </div>
+
+                        {/* Expanded Details */}
+                        {isExpanded && session && (
+                          <div className="p-4 bg-white border-t border-border-color space-y-3">
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary mb-1">AI Summary:</p>
+                              <p className="text-sm text-text-secondary">{session.symptomsSummary || 'No summary available'}</p>
+                            </div>
+
+                            {session.redFlags && session.redFlags.length > 0 && (
+                              <div>
+                                <p className="text-sm font-semibold text-red-700 mb-1">⚠️ Red Flags:</p>
+                                <ul className="list-disc list-inside text-sm text-red-600">
+                                  {session.redFlags.map((flag, i) => <li key={i}>{flag}</li>)}
+                                </ul>
+                              </div>
+                            )}
+
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary mb-1">AI Suggested Priority: 
+                                <span className={`ml-2 px-2 py-0.5 rounded-full text-white text-xs font-bold uppercase ${priorityConfig[session.suggestedPriority]?.badge}`}>
+                                  {session.suggestedPriority}
+                                </span>
+                              </p>
+                            </div>
+
+                            {/* Override Priority */}
+                            <div className="pt-3 border-t border-border-color">
+                              <p className="text-sm font-semibold text-text-primary mb-2">Override Priority:</p>
+                              <div className="flex space-x-2">
+                                {['high', 'medium', 'routine'].map(p => (
+                                  <button
+                                    key={p}
+                                    onClick={() => handleOverridePriority(c._id, p)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                                      c.finalPriority === p 
+                                        ? `${priorityConfig[p].badge} text-white`
+                                        : `${priorityConfig[p].bg} ${priorityConfig[p].text} border ${priorityConfig[p].border} hover:opacity-80`
+                                    }`}
+                                  >
+                                    {priorityConfig[p].label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         )}
-                        {entry.status === 'in-consult' && (
-                          <button onClick={() => handleUpdateQueueStatus(entry._id, 'done')} className="text-sm bg-priority-routine text-white px-3 py-1 rounded-md">Complete</button>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Upcoming Appointments */}
-            <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-              <h2 className="text-xl font-bold mb-4">Upcoming Appointments</h2>
-              {appointments.length === 0 ? (
-                <p className="text-text-secondary">No appointments booked yet.</p>
-              ) : (
-                <div className="space-y-4">
-                  {appointments.map(apt => (
-                    <div key={apt._id} className="border border-border-color p-4 rounded-xl">
-                      <p className="font-bold">{apt.patientId?.name}</p>
-                      <p className="text-sm text-text-secondary capitalize">{apt.type} • {apt.date} • {apt.timeSlot}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Live Queue */}
+              <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
+                <h2 className="text-xl font-bold mb-4">Live Patient Queue</h2>
+                {queue.length === 0 ? (
+                  <p className="text-text-secondary">Your queue is currently empty.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {queue.map(entry => (
+                      <div key={entry._id} className={`p-4 rounded-xl border ${entry.status === 'in-consult' ? 'border-brand-primary bg-blue-50' : 'border-border-color'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="font-bold">
+                            <span className="text-brand-secondary mr-2">#{entry.position}</span>
+                            {entry.patientId?.name}
+                          </p>
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase ${entry.status === 'in-consult' ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-700'}`}>
+                            {entry.status}
+                          </span>
+                        </div>
+                        <div className="flex space-x-2 mt-3">
+                          {entry.status === 'waiting' && (
+                            <button onClick={() => handleUpdateQueueStatus(entry._id, 'in-consult')} className="text-sm bg-brand-primary text-white px-3 py-1 rounded-md">Start Consult</button>
+                          )}
+                          {entry.status === 'in-consult' && (
+                            <button onClick={() => handleUpdateQueueStatus(entry._id, 'done')} className="text-sm bg-priority-routine text-white px-3 py-1 rounded-md">Complete</button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Upcoming Appointments */}
+              <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
+                <h2 className="text-xl font-bold mb-4">Upcoming Appointments</h2>
+                {appointments.length === 0 ? (
+                  <p className="text-text-secondary">No appointments booked yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {appointments.map(apt => (
+                      <div key={apt._id} className="border border-border-color p-4 rounded-xl">
+                        <p className="font-bold">{apt.patientId?.name}</p>
+                        <p className="text-sm text-text-secondary capitalize">{apt.type} • {apt.date} • {apt.timeSlot}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
