@@ -221,7 +221,7 @@ const DoctorDashboard = () => {
                             {/* Override Priority */}
                             <div className="pt-3 border-t border-border-color">
                               <p className="text-sm font-semibold text-text-primary mb-2">Override Priority:</p>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 mb-4">
                                 {['high', 'medium', 'routine'].map(p => (
                                   <button
                                     key={p}
@@ -236,6 +236,12 @@ const DoctorDashboard = () => {
                                   </button>
                                 ))}
                               </div>
+                              <button
+                                onClick={() => window.location.href = `/doctor/telemedicine/${c._id}?patientId=${c.patientId?._id || c.patientId}`}
+                                className="w-full bg-brand-primary text-white py-2 rounded-lg font-bold hover:bg-brand-secondary transition"
+                              >
+                                🎥 Start Telemedicine Consult
+                              </button>
                             </div>
                           </div>
                         )}

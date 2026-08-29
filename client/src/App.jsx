@@ -9,6 +9,8 @@ import FindDoctor from './features/patient/FindDoctor';
 import AIAssistant from './features/patient/AIAssistant';
 import DoctorDashboard from './features/doctor/Dashboard';
 import AdminDashboard from './features/admin/Dashboard';
+import TelemedicineRoom from './features/telemedicine/TelemedicineRoom';
+import MedicineRequest from './features/patient/MedicineRequest';
 
 function App() {
   return (
@@ -24,10 +26,13 @@ function App() {
             <Route path="/patient/dashboard" element={<PatientDashboard />} />
             <Route path="/patient/find-doctor" element={<FindDoctor />} />
             <Route path="/patient/ai-assistant" element={<AIAssistant />} />
+            <Route path="/patient/telemedicine/:id" element={<TelemedicineRoom />} />
+            <Route path="/patient/medicine-request" element={<MedicineRequest />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['doctor']} />}>
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+            <Route path="/doctor/telemedicine/:id" element={<TelemedicineRoom />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>

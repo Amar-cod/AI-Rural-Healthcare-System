@@ -74,12 +74,13 @@ Status: Completed on 2026-08-30 — Built Gemini integration with safety-first s
 
 ---
 
-## Phase 5 — Consultation, Records, Telemedicine, Medicine Request
-**Goal:** Close the loop from consult to prescription to medicine request.
-- [ ] Doctor: patient history drawer, consultation notes, prescription generator.
-- [ ] `pdfService.js` (pdfkit) → generate prescription/report PDFs, downloadable by patient.
-- [ ] Telemedicine: PeerJS video/audio room, doctor can open patient history in a side panel during the call.
-- [ ] Medicine request: patient selects from an existing prescription only (validate server-side — no free-text medicine requests).
+## Phase 5 — Consultation, Records, Telemedicine, Medicine Request (Completed)
+- [x] Build `pdfService.js` (uses pdfkit) to generate Prescription and Report PDFs.
+- [x] Build Patient History Panel for doctor to review past records.
+- [x] Doctor can add text notes to an active Consultation.
+- [x] Create Prescription model and generate PDF (save to `/uploads`, offer download route).
+- [x] Build Telemedicine room via PeerJS.
+- [x] Build MedicineRequest model and Patient UI to request refills from existing prescriptions (validate server-side — no free-text medicine requests).
 
 **Done when:** Full loop works — consult → prescription → PDF download → medicine request submitted.
 

@@ -11,6 +11,10 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const queueRoutes = require('./routes/queueRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const consultationRoutes = require('./routes/consultationRoutes');
+const historyRoutes = require('./routes/historyRoutes');
+const prescriptionRoutes = require('./routes/prescriptionRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const medicineRequestRoutes = require('./routes/medicineRequestRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -27,6 +31,10 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/queue', queueRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/consultations', consultationRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/medicine-requests', medicineRequestRoutes);
 
 const PORT = process.env.PORT || 5000;
 const http = require('http');

@@ -54,4 +54,28 @@ const overridePriority = async (req, res) => {
   }
 };
 
-module.exports = { getHandedOffSessions, overridePriority };
+const addNotes = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const doctorId = req.user.id;
+
+    const consultation = await Consultation.findById(id);
+    if (!consultation) return res.status(404).json({ message: 'Consultation not found.' });
+
+    if (consultation.doctorId && consultation.doctorId.toString() !== doctorId) {
+      return res.status(403).json({ message: 'Not authorized to edit notes for this consultation.' });
+    }
+
+    consultation.notes = notes;
+    consultation.doctorId = doctorId; // Claim it if not already
+    await consultation.save();
+
+    res.json(consultation);
+  } catch (error) {
+    console.error('Add notes error:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+module.exports = { getHandedOffSessions, overridePriority, addNotes };

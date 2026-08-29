@@ -8,11 +8,15 @@ const PatientDashboard = () => {
   const { user, logout } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [queueEntry, setQueueEntry] = useState(null);
+  const [history, setHistory] = useState({ consultations: [], prescriptions: [], reports: [] });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+    if (user?._id) {
+      fetchHistory();
+    }
+  }, [user]);
 
   const fetchAppointments = async () => {
     try {
@@ -20,6 +24,15 @@ const PatientDashboard = () => {
       setAppointments(res.data);
     } catch (err) {
       console.error('Failed to fetch appointments', err);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const res = await api.get(`/history/${user._id}`);
+      setHistory(res.data);
+    } catch (err) {
+      console.error('Failed to fetch history', err);
     }
   };
 
@@ -119,11 +132,80 @@ const PatientDashboard = () => {
               <div className="text-center p-6 bg-accent-soft-blue rounded-xl border border-blue-200">
                 <p className="text-lg font-medium text-text-secondary mb-2">Your Position in Line</p>
                 <p className="text-5xl font-bold text-brand-primary mb-4">#{queueEntry.position}</p>
-                <div className="inline-block px-4 py-1 bg-white rounded-full text-sm font-semibold uppercase text-brand-secondary shadow-sm">
+                <div className="inline-block px-4 py-1 bg-white rounded-full text-sm font-semibold uppercase text-brand-secondary shadow-sm mb-4">
                   {queueEntry.status === 'waiting' ? 'Waiting' : 'In Consultation'}
                 </div>
+                {queueEntry.status === 'in-consult' && (
+                  <button 
+                    onClick={() => navigate(`/patient/telemedicine/${queueEntry.consultationId || queueEntry._id}`)}
+                    className="block w-full bg-brand-primary text-white py-2 rounded-lg font-bold hover:bg-brand-secondary transition"
+                  >
+                    🎥 Join Telemedicine Call
+                  </button>
+                )}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Medical History & Prescriptions */}
+        <div className="mt-8 bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">Medical History & Records</h2>
+            <button 
+              onClick={() => navigate('/patient/medicine-request')}
+              className="bg-brand-secondary text-white px-4 py-2 rounded-lg text-sm hover:bg-opacity-90 transition"
+            >
+              💊 Request Medicine Refill
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold border-b pb-2 mb-4">Past Prescriptions</h3>
+              {history.prescriptions.length === 0 ? (
+                <p className="text-sm text-text-secondary">No prescriptions yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {history.prescriptions.map(p => (
+                    <div key={p._id} className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                      <p className="font-bold text-sm mb-1">{new Date(p.createdAt).toLocaleDateString()} - Dr. {p.doctorId?.name}</p>
+                      <ul className="list-disc list-inside text-xs text-gray-700">
+                        {p.medicines.map((m, i) => <li key={i}>{m.name}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="font-semibold border-b pb-2 mb-4">Downloadable Reports</h3>
+              {history.reports.length === 0 ? (
+                <p className="text-sm text-text-secondary">No reports available.</p>
+              ) : (
+                <div className="space-y-3">
+                  {history.reports.map(r => (
+                    <div key={r._id} className="flex justify-between items-center bg-gray-50 border border-gray-100 p-3 rounded-xl">
+                      <div>
+                        <p className="font-semibold text-sm">{r.title}</p>
+                        <p className="text-xs text-text-secondary">{new Date(r.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      {r.fileUrl && (
+                        <a 
+                          href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}/api/reports/${r._id}/download`}
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-brand-primary text-sm font-bold hover:underline"
+                        >
+                          Download PDF
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
