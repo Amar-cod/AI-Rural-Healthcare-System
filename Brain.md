@@ -32,13 +32,18 @@ Status: Completed on 2026-08-28 — Built Auth System, JWT middleware, Route gua
 
 ---
 
-## Phase 2 — Doctor Verification Workflow (Admin ↔ Doctor)
-**Goal:** The core trust mechanism works end-to-end.
-- [ ] `DoctorProfile` model, doctor application form (specialization, qualifications, license number).
-- [ ] Admin dashboard: applications table (Pending/Approved/Rejected), approve/reject action.
-- [ ] Only approved doctors appear in the public doctor directory.
+## Phase 2 — Doctor Verification Workflow
+**Goal:** Build the end-to-end trust mechanism where doctors apply and admins review.
+- [x] `DoctorProfile` model referencing `User`.
+- [x] Doctor dashboard shows a form to apply (specialization, license, etc.).
+- [x] Admin dashboard shows a table/kanban of all doctor applications.
+- [x] Admin can click "Approve" or "Reject".
+- [x] The Doctor's own dashboard updates instantly to reflect their status.
+- [x] Only approved doctors can be fetched for the public-facing directory.
 
-**Done when:** A doctor applies, admin approves them live, doctor now appears in patient's "Find a Doctor" list.
+Status: Completed on 2026-08-29 — Built DoctorProfile schema, API endpoints for application/approval, updated Doctor and Admin dashboards with forms/tables.
+
+**Done when:** A doctor can log in, submit their license number, an admin can approve them, and the doctor then sees "Approved" on their screen.
 
 ---
 
