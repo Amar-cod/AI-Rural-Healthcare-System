@@ -6,11 +6,16 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   role: { 
     type: String, 
-    enum: ['patient', 'doctor', 'admin'], 
+    enum: ['patient', 'doctor', 'admin', 'asha_worker'], 
     required: true 
   },
   phone: { type: String },
   language: { type: String, default: 'en' },
+  currentPriority: { 
+    type: String, 
+    enum: ['critical', 'high', 'medium', 'routine'], 
+    default: 'routine' 
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

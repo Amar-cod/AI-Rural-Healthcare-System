@@ -1,4 +1,5 @@
 const AISession = require('../models/AISession');
+const User = require('../models/User');
 const geminiService = require('../services/geminiService');
 
 /**
@@ -119,6 +120,18 @@ const handoffSession = async (req, res) => {
       finalPriority: session.suggestedPriority,
       notes: session.symptomsSummary || ''
     });
+
+    // Update patient's current priority if the session priority is higher
+    const patient = await User.findById(session.patientId);
+    if (patient) {
+      const priorityWeights = { routine: 1, medium: 2, high: 3, critical: 4 };
+      const currentWeight = priorityWeights[patient.currentPriority] || 1;
+      const newWeight = priorityWeights[session.suggestedPriority] || 1;
+      if (newWeight > currentWeight) {
+        patient.currentPriority = session.suggestedPriority;
+        await patient.save();
+      }
+    }
 
     res.json({ message: 'Session handed off to doctor successfully.', consultation });
   } catch (error) {
