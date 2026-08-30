@@ -1,5 +1,7 @@
 const Prescription = require('../models/Prescription');
 const User = require('../models/User');
+const MedicationSchedule = require('../models/MedicationSchedule');
+const Reminder = require('../models/Reminder');
 const { generatePrescriptionPDF } = require('../services/pdfService');
 
 const createPrescription = async (req, res) => {
@@ -32,13 +34,64 @@ const createPrescription = async (req, res) => {
     const patient = await User.findById(patientId);
     const doctor = await User.findById(doctorId);
 
-    // Generate PDF (fire and forget or await, depending on needs. Await is safer for returning url)
-    // To make the file downloadable immediately, we wait for PDF generation
-    // Alternatively, we could attach the fileUrl to a Report object.
+    // Generate MedicationSchedules and Reminders
+    const schedules = [];
+    const reminders = [];
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0); // start today
+
+    for (const med of medicines) {
+      const duration = parseInt(med.durationDays) || 5;
+      const freq = med.frequency || '1x/day';
+      
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + duration - 1);
+      
+      const schedule = new MedicationSchedule({
+        patientId,
+        prescriptionId: prescription._id,
+        medicineName: med.name,
+        dosage: med.dosage,
+        frequency: freq,
+        startDate,
+        endDate
+      });
+      await schedule.save();
+      schedules.push(schedule);
+
+      // Determine times based on frequency
+      let dailyTimes = [];
+      if (freq === '1x/day') dailyTimes = [9]; // 9 AM
+      else if (freq === '2x/day') dailyTimes = [9, 21]; // 9 AM, 9 PM
+      else if (freq === '3x/day') dailyTimes = [9, 14, 21]; // 9 AM, 2 PM, 9 PM
+      else dailyTimes = [9];
+
+      for (let i = 0; i < duration; i++) {
+        for (const hour of dailyTimes) {
+          const reminderTime = new Date(startDate);
+          reminderTime.setDate(reminderTime.getDate() + i);
+          reminderTime.setHours(hour, 0, 0, 0);
+
+          // Only create reminder if it's in the future (or today)
+          // If we created it right now and it's already past the hour today, it might immediately trigger or be shown as missed.
+          // For simplicity, we just create all.
+          
+          reminders.push({
+            patientId,
+            scheduleId: schedule._id,
+            type: 'medication',
+            message: `Take ${med.name} (${med.dosage})`,
+            scheduledTime: reminderTime,
+            status: 'pending'
+          });
+        }
+      }
+    }
     
-    // In our system, let's create a Report for this Prescription
-    const Report = require('../models/Report');
-    
+    if (reminders.length > 0) {
+      await Reminder.insertMany(reminders);
+    }
+
     let fileUrl = null;
     try {
       fileUrl = await generatePrescriptionPDF(prescription, patient, doctor);

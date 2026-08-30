@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
     enum: ['critical', 'high', 'medium', 'routine'], 
     default: 'routine' 
   },
+  pushSubscription: { type: Object }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
