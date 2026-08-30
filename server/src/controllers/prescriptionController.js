@@ -4,11 +4,20 @@ const { generatePrescriptionPDF } = require('../services/pdfService');
 
 const createPrescription = async (req, res) => {
   try {
+    console.log('--- createPrescription CALLED ---');
+    console.log('req.body:', req.body);
+    
     const { consultationId, patientId, medicines } = req.body;
     const doctorId = req.user.id;
 
     if (!medicines || medicines.length === 0) {
+      console.log('Validation failed: No medicines');
       return res.status(400).json({ message: 'Medicines list cannot be empty.' });
+    }
+    
+    if (!consultationId || !patientId) {
+      console.log('Validation failed: Missing IDs', { consultationId, patientId });
+      return res.status(400).json({ message: 'Missing consultation or patient ID.' });
     }
 
     const prescription = new Prescription({

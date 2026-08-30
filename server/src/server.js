@@ -19,6 +19,14 @@ const medicineRequestRoutes = require('./routes/medicineRequestRoutes');
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  if (req.method === 'POST' || req.method === 'PATCH') {
+    console.log('Body:', req.body);
+  }
+  next();
+});
+
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
   res.status(200).json({ status: 'OK', database: dbStatus });

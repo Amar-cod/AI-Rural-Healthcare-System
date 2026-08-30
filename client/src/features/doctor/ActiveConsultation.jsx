@@ -12,6 +12,8 @@ const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
     if (newMedicine.name && newMedicine.dosage) {
       setMedicines([...medicines, newMedicine]);
       setNewMedicine({ name: '', dosage: '', instructions: '' });
+    } else {
+      alert('Please provide both Medicine Name and Dosage to add it.');
     }
   };
 
@@ -29,7 +31,12 @@ const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
 
       // Automatically include any pending medicine if they forgot to click Add
       let finalMedicines = [...medicines];
-      if (newMedicine.name && newMedicine.dosage) {
+      if (newMedicine.name || newMedicine.dosage) {
+        if (!newMedicine.name || !newMedicine.dosage) {
+          alert('Please fill out both Medicine Name and Dosage for the pending medicine, or clear it.');
+          setLoading(false);
+          return;
+        }
         finalMedicines.push(newMedicine);
       }
 
@@ -97,33 +104,33 @@ const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             placeholder="Medicine Name"
             value={newMedicine.name}
             onChange={(e) => setNewMedicine({...newMedicine, name: e.target.value})}
-            className="flex-1 border border-border-color rounded-lg p-2 text-sm"
+            className="flex-1 border border-border-color rounded-lg p-2 text-sm min-w-0"
           />
           <input
             type="text"
             placeholder="Dosage (e.g. 500mg)"
             value={newMedicine.dosage}
             onChange={(e) => setNewMedicine({...newMedicine, dosage: e.target.value})}
-            className="w-1/4 border border-border-color rounded-lg p-2 text-sm"
+            className="sm:w-1/4 border border-border-color rounded-lg p-2 text-sm min-w-0"
           />
           <input
             type="text"
             placeholder="Instructions (e.g. After meals)"
             value={newMedicine.instructions}
             onChange={(e) => setNewMedicine({...newMedicine, instructions: e.target.value})}
-            className="flex-1 border border-border-color rounded-lg p-2 text-sm"
+            className="flex-1 border border-border-color rounded-lg p-2 text-sm min-w-0"
           />
           <button 
             onClick={handleAddMedicine}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-300"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-300 whitespace-nowrap"
           >
-            Add
+            Add Medicine
           </button>
         </div>
       </div>

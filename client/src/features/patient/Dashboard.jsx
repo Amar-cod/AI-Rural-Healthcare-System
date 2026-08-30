@@ -48,6 +48,31 @@ const PatientDashboard = () => {
     }
   };
 
+  const handleDownload = async (reportId, reportTitle) => {
+    try {
+      const response = await api.get(`/reports/${reportId}/download`, {
+        responseType: 'blob', // Important for downloading files
+      });
+      
+      // Create a blob from the response data
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      // Set a clean filename based on the title
+      const cleanTitle = reportTitle.replace(/[^a-zA-Z0-9]/g, '_');
+      link.setAttribute('download', `${cleanTitle}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Failed to download the report. The file may be missing or you do not have permission.');
+    }
+  };
+
   useEffect(() => {
     if (queueEntry) {
       const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
@@ -192,14 +217,12 @@ const PatientDashboard = () => {
                         <p className="text-xs text-text-secondary">{new Date(r.createdAt).toLocaleDateString()}</p>
                       </div>
                       {r.fileUrl && (
-                        <a 
-                          href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}/api/reports/${r._id}/download`}
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="text-brand-primary text-sm font-bold hover:underline"
+                        <button 
+                          onClick={() => handleDownload(r._id, r.title)}
+                          className="text-brand-primary text-sm font-bold hover:underline cursor-pointer bg-transparent border-none p-0 text-left"
                         >
                           Download PDF
-                        </a>
+                        </button>
                       )}
                     </div>
                   ))}

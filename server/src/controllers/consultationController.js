@@ -60,10 +60,16 @@ const addNotes = async (req, res) => {
     const { notes } = req.body;
     const doctorId = req.user.id;
 
+    console.log(`--- addNotes CALLED --- consultationId: ${id}, doctorId: ${doctorId}`);
+
     const consultation = await Consultation.findById(id);
-    if (!consultation) return res.status(404).json({ message: 'Consultation not found.' });
+    if (!consultation) {
+      console.log('Consultation not found');
+      return res.status(404).json({ message: 'Consultation not found.' });
+    }
 
     if (consultation.doctorId && consultation.doctorId.toString() !== doctorId) {
+      console.log(`403 Forbidden: consultation.doctorId is ${consultation.doctorId.toString()}, but req.user is ${doctorId}`);
       return res.status(403).json({ message: 'Not authorized to edit notes for this consultation.' });
     }
 
@@ -71,6 +77,7 @@ const addNotes = async (req, res) => {
     consultation.doctorId = doctorId; // Claim it if not already
     await consultation.save();
 
+    console.log('Successfully saved notes');
     res.json(consultation);
   } catch (error) {
     console.error('Add notes error:', error);
