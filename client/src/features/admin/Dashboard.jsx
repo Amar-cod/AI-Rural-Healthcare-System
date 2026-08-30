@@ -31,14 +31,23 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-accent-soft-amber p-8 flex items-center justify-center">
+        <div className="text-center text-text-secondary">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
+          <p>Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-accent-soft-amber p-8">
+    <div className="min-h-screen bg-accent-soft-amber p-4 md:p-8">
       <div className="max-w-6xl mx-auto bg-bg-card p-6 rounded-2xl shadow-sm">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h1 className="text-2xl font-bold text-text-primary">Admin Dashboard</h1>
-          <button onClick={logout} className="bg-danger text-white px-4 py-2 rounded-md">Logout</button>
+          <button onClick={logout} className="w-full sm:w-auto bg-danger text-white px-4 py-2 rounded-md">Logout</button>
         </div>
         
         <p className="mb-6 text-lg">Welcome, {user?.name}</p>
@@ -74,13 +83,15 @@ const AdminDashboard = () => {
                       {app.verificationStatus === 'approved' && <span className="bg-priority-routine-bg text-priority-routine px-2 py-1 rounded-full text-xs font-semibold uppercase inline-block">Approved</span>}
                       {app.verificationStatus === 'rejected' && <span className="bg-priority-high-bg text-priority-high px-2 py-1 rounded-full text-xs font-semibold uppercase inline-block">Rejected</span>}
                     </td>
-                    <td className="p-3 space-x-2">
-                      {app.verificationStatus !== 'approved' && (
-                        <button onClick={() => handleUpdateStatus(app._id, 'approved')} className="bg-priority-routine text-white px-3 py-1 rounded-md text-sm">Approve</button>
-                      )}
-                      {app.verificationStatus !== 'rejected' && (
-                        <button onClick={() => handleUpdateStatus(app._id, 'rejected')} className="bg-danger text-white px-3 py-1 rounded-md text-sm">Reject</button>
-                      )}
+                    <td className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {app.verificationStatus !== 'approved' && (
+                          <button onClick={() => handleUpdateStatus(app._id, 'approved')} className="bg-priority-routine text-white px-3 py-1 rounded-md text-sm whitespace-nowrap">Approve</button>
+                        )}
+                        {app.verificationStatus !== 'rejected' && (
+                          <button onClick={() => handleUpdateStatus(app._id, 'rejected')} className="bg-danger text-white px-3 py-1 rounded-md text-sm whitespace-nowrap">Reject</button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

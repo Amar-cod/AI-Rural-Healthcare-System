@@ -14,16 +14,17 @@ const seedAdmin = async () => {
     }
 
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash('admin123', salt);
+    const passwordHash = await bcrypt.hash('Admin@Demo2026!', salt);
 
-    await User.create({
-      name: 'Super Admin',
+    const admin = new User({
+      name: 'System Admin',
       email: 'admin@rhcs.com',
       passwordHash,
       role: 'admin',
     });
 
-    console.log('Admin seeded successfully! Email: admin@rhcs.com | Password: admin123');
+    await admin.save();
+    console.log('Admin seeded successfully! Email: admin@rhcs.com | Password: Admin@Demo2026!');
     process.exit();
   } catch (error) {
     console.error('Error seeding admin', error);

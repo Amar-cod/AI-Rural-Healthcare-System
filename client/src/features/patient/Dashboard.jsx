@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../lib/axios';
 import { io } from 'socket.io-client';
+import { useTranslation } from 'react-i18next';
 
 const PatientDashboard = () => {
+  const { t, i18n } = useTranslation();
   const { user, logout } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [queueEntry, setQueueEntry] = useState(null);
   const [history, setHistory] = useState({ consultations: [], prescriptions: [], reports: [] });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,6 +36,8 @@ const PatientDashboard = () => {
       setHistory(res.data);
     } catch (err) {
       console.error('Failed to fetch history', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,31 +106,49 @@ const PatientDashboard = () => {
     }
   }, [queueEntry]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-accent-soft-blue p-8 flex items-center justify-center">
+        <div className="text-center text-text-secondary">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
+          <p>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-accent-soft-blue p-8">
+    <div className="min-h-screen bg-accent-soft-blue p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8 bg-bg-card p-6 rounded-2xl shadow-sm">
+        {/* Language Toggle */}
+        <div className="flex justify-end mb-4 space-x-2">
+          <button onClick={() => i18n.changeLanguage('en')} className={`px-2 py-1 rounded text-sm ${i18n.language === 'en' ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-700'}`}>EN</button>
+          <button onClick={() => i18n.changeLanguage('hi')} className={`px-2 py-1 rounded text-sm ${i18n.language === 'hi' ? 'bg-brand-primary text-white' : 'bg-gray-200 text-gray-700'}`}>HI</button>
+        </div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-bg-card p-6 rounded-2xl shadow-sm gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Patient Dashboard</h1>
-            <p className="text-text-secondary mt-1">Welcome back, {user?.name}</p>
+            <h1 className="text-2xl font-bold text-text-primary">{t('patient_dashboard')}</h1>
+            <p className="text-text-secondary mt-1">{t('welcome_back')}, {user?.name}</p>
           </div>
-          <div className="space-x-3">
-            <button onClick={() => navigate('/patient/ai-assistant')} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
-              🩺 AI Symptom Check
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <button onClick={() => navigate('/patient/ai-assistant')} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition flex-1 md:flex-none text-sm whitespace-nowrap">
+              🩺 {t('start_consultation')}
             </button>
-            <button onClick={() => navigate('/patient/find-doctor')} className="bg-brand-primary text-white px-4 py-2 rounded-md hover:bg-brand-secondary transition">
+            <button onClick={() => navigate('/patient/find-doctor')} className="bg-brand-primary text-white px-4 py-2 rounded-md hover:bg-brand-secondary transition flex-1 md:flex-none text-sm">
               Find a Doctor
             </button>
-            <button onClick={logout} className="bg-danger text-white px-4 py-2 rounded-md">Logout</button>
+            <button onClick={logout} className="bg-danger text-white px-4 py-2 rounded-md flex-1 md:flex-none text-sm">{t('logout')}</button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Upcoming Appointments */}
           <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-            <h2 className="text-xl font-bold mb-4">Upcoming Appointments</h2>
+            <h2 className="text-xl font-bold mb-4">{t('upcoming_appointments')}</h2>
             {appointments.length === 0 ? (
-              <p className="text-text-secondary">No upcoming appointments.</p>
+              <div className="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p className="text-text-secondary">{t('no_appointments')}</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {appointments.map(apt => (
@@ -150,12 +173,14 @@ const PatientDashboard = () => {
 
           {/* Live Queue Status */}
           <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-            <h2 className="text-xl font-bold mb-4">Live Queue Status</h2>
+            <h2 className="text-xl font-bold mb-4">{t('live_queue')}</h2>
             {!queueEntry ? (
-              <p className="text-text-secondary">You are not currently in a queue.</p>
+              <div className="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p className="text-text-secondary">{t('not_in_queue')}</p>
+              </div>
             ) : (
               <div className="text-center p-6 bg-accent-soft-blue rounded-xl border border-blue-200">
-                <p className="text-lg font-medium text-text-secondary mb-2">Your Position in Line</p>
+                <p className="text-lg font-medium text-text-secondary mb-2">{t('position')}</p>
                 <p className="text-5xl font-bold text-brand-primary mb-4">#{queueEntry.position}</p>
                 <div className="inline-block px-4 py-1 bg-white rounded-full text-sm font-semibold uppercase text-brand-secondary shadow-sm mb-4">
                   {queueEntry.status === 'waiting' ? 'Waiting' : 'In Consultation'}
@@ -175,11 +200,11 @@ const PatientDashboard = () => {
 
         {/* Medical History & Prescriptions */}
         <div className="mt-8 bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Medical History & Records</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h2 className="text-xl font-bold">{t('medical_history')}</h2>
             <button 
               onClick={() => navigate('/patient/medicine-request')}
-              className="bg-brand-secondary text-white px-4 py-2 rounded-lg text-sm hover:bg-opacity-90 transition"
+              className="bg-brand-secondary text-white px-4 py-2 rounded-lg text-sm hover:bg-opacity-90 transition w-full sm:w-auto"
             >
               💊 Request Medicine Refill
             </button>
@@ -189,7 +214,9 @@ const PatientDashboard = () => {
             <div>
               <h3 className="font-semibold border-b pb-2 mb-4">Past Prescriptions</h3>
               {history.prescriptions.length === 0 ? (
-                <p className="text-sm text-text-secondary">No prescriptions yet.</p>
+                <div className="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <p className="text-sm text-text-secondary">No prescriptions yet.</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {history.prescriptions.map(p => (
@@ -205,9 +232,11 @@ const PatientDashboard = () => {
             </div>
 
             <div>
-              <h3 className="font-semibold border-b pb-2 mb-4">Downloadable Reports</h3>
+              <h3 className="font-semibold border-b pb-2 mb-4">{t('downloadable_reports')}</h3>
               {history.reports.length === 0 ? (
-                <p className="text-sm text-text-secondary">No reports available.</p>
+                <div className="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <p className="text-sm text-text-secondary">{t('no_reports')}</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {history.reports.map(r => (
@@ -221,7 +250,7 @@ const PatientDashboard = () => {
                           onClick={() => handleDownload(r._id, r.title)}
                           className="text-brand-primary text-sm font-bold hover:underline cursor-pointer bg-transparent border-none p-0 text-left"
                         >
-                          Download PDF
+                          {t('download_pdf')}
                         </button>
                       )}
                     </div>
