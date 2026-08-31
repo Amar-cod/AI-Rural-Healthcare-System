@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../lib/axios';
 import { io } from 'socket.io-client';
+import PatientPriorityList from './PatientPriorityList';
 
 const DoctorDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -131,7 +132,7 @@ const DoctorDashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-bg-card p-6 rounded-2xl shadow-sm gap-4">
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Doctor Dashboard</h1>
-            <p className="text-text-secondary mt-1">Welcome back, Dr. {user?.name}</p>
+            <p className="text-text-secondary mt-1">Welcome back, Dr. {user?.name?.replace(/^Dr\.\s*/i, '')}</p>
           </div>
           <div className="w-full md:w-auto mt-4 md:mt-0">
             <button onClick={logout} className="w-full md:w-auto bg-danger text-white px-4 py-2 rounded-md">Logout</button>
@@ -172,98 +173,8 @@ const DoctorDashboard = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* AI Priority Queue — the centerpiece */}
-            <div className="bg-bg-card p-6 rounded-2xl shadow-sm border border-border-color">
-              <h2 className="text-xl font-bold mb-4">🧠 AI Triage Priority Queue</h2>
-              <p className="text-sm text-text-secondary mb-4">Patient sessions triaged by AI, sorted by urgency. You can override the priority.</p>
-              {consultations.length === 0 ? (
-                <div className="text-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  <p className="text-text-secondary">No patient sessions waiting for review.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {consultations.map(c => {
-                    const session = c.aiSessionId;
-                    const pc = priorityConfig[c.finalPriority] || priorityConfig.routine;
-                    const isExpanded = expandedConsultation === c._id;
-
-                    return (
-                      <div key={c._id} className={`rounded-xl border-2 overflow-hidden ${pc.border}`}>
-                        {/* Header */}
-                        <div 
-                          className={`p-4 cursor-pointer flex items-center justify-between ${pc.bg}`}
-                          onClick={() => setExpandedConsultation(isExpanded ? null : c._id)}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <span className={`px-3 py-1 rounded-full text-white text-xs font-bold uppercase ${pc.badge}`}>
-                              {c.finalPriority}
-                            </span>
-                            <div>
-                              <p className="font-bold text-text-primary">{c.patientId?.name}</p>
-                              <p className="text-xs text-text-secondary">{new Date(c.createdAt).toLocaleString()}</p>
-                            </div>
-                          </div>
-                          <span className="text-lg">{isExpanded ? '▲' : '▼'}</span>
-                        </div>
-
-                        {/* Expanded Details */}
-                        {isExpanded && session && (
-                          <div className="p-4 bg-white border-t border-border-color space-y-3">
-                            <div>
-                              <p className="text-sm font-semibold text-text-primary mb-1">AI Summary:</p>
-                              <p className="text-sm text-text-secondary">{session.symptomsSummary || 'No summary available'}</p>
-                            </div>
-
-                            {session.redFlags && session.redFlags.length > 0 && (
-                              <div>
-                                <p className="text-sm font-semibold text-red-700 mb-1">⚠️ Red Flags:</p>
-                                <ul className="list-disc list-inside text-sm text-red-600">
-                                  {session.redFlags.map((flag, i) => <li key={i}>{flag}</li>)}
-                                </ul>
-                              </div>
-                            )}
-
-                            <div>
-                              <p className="text-sm font-semibold text-text-primary mb-1">AI Suggested Priority: 
-                                <span className={`ml-2 px-2 py-0.5 rounded-full text-white text-xs font-bold uppercase ${priorityConfig[session.suggestedPriority]?.badge}`}>
-                                  {session.suggestedPriority}
-                                </span>
-                              </p>
-                            </div>
-
-                            {/* Override Priority */}
-                            <div className="pt-3 border-t border-border-color">
-                              <p className="text-sm font-semibold text-text-primary mb-2">Override Priority:</p>
-                              <div className="flex space-x-2 mb-4">
-                                {['high', 'medium', 'routine'].map(p => (
-                                  <button
-                                    key={p}
-                                    onClick={() => handleOverridePriority(c._id, p)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                                      c.finalPriority === p 
-                                        ? `${priorityConfig[p].badge} text-white`
-                                        : `${priorityConfig[p].bg} ${priorityConfig[p].text} border ${priorityConfig[p].border} hover:opacity-80`
-                                    }`}
-                                  >
-                                    {priorityConfig[p].label}
-                                  </button>
-                                ))}
-                              </div>
-                              <button
-                                onClick={() => window.location.href = `/doctor/telemedicine/${c._id}?patientId=${c.patientId?._id || c.patientId}`}
-                                className="w-full bg-brand-primary text-white py-2 rounded-lg font-bold hover:bg-brand-secondary transition"
-                              >
-                                🎥 Start Telemedicine Consult
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            {/* AI Priority Queue replaced by PatientPriorityList */}
+            <PatientPriorityList />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Live Queue */}

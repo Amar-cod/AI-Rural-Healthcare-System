@@ -4,14 +4,14 @@ import api from '../../lib/axios';
 const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
   const [notes, setNotes] = useState('');
   const [medicines, setMedicines] = useState([]);
-  const [newMedicine, setNewMedicine] = useState({ name: '', dosage: '', instructions: '' });
+  const [newMedicine, setNewMedicine] = useState({ name: '', dosage: '', instructions: '', frequency: '1x/day', durationDays: '5' });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleAddMedicine = () => {
     if (newMedicine.name && newMedicine.dosage) {
       setMedicines([...medicines, newMedicine]);
-      setNewMedicine({ name: '', dosage: '', instructions: '' });
+      setNewMedicine({ name: '', dosage: '', instructions: '', frequency: '1x/day', durationDays: '5' });
     } else {
       alert('Please provide both Medicine Name and Dosage to add it.');
     }
@@ -96,7 +96,7 @@ const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
               <div key={i} className="flex justify-between items-center py-2 border-b last:border-0 border-gray-200">
                 <div>
                   <p className="font-bold text-sm">{m.name} <span className="font-normal text-gray-500">({m.dosage})</span></p>
-                  <p className="text-xs text-gray-600">{m.instructions}</p>
+                  <p className="text-xs text-gray-600">{m.instructions} | {m.frequency} for {m.durationDays} days</p>
                 </div>
                 <button onClick={() => handleRemoveMedicine(i)} className="text-red-500 text-xs font-bold hover:underline">Remove</button>
               </div>
@@ -121,10 +121,28 @@ const ActiveConsultation = ({ consultationId, patientId, onComplete }) => {
           />
           <input
             type="text"
-            placeholder="Instructions (e.g. After meals)"
+            placeholder="Instructions"
             value={newMedicine.instructions}
             onChange={(e) => setNewMedicine({...newMedicine, instructions: e.target.value})}
             className="flex-1 border border-border-color rounded-lg p-2 text-sm min-w-0"
+          />
+          <select
+            value={newMedicine.frequency}
+            onChange={(e) => setNewMedicine({...newMedicine, frequency: e.target.value})}
+            className="border border-border-color rounded-lg p-2 text-sm bg-white"
+          >
+            <option value="1x/day">1x/day (Morning)</option>
+            <option value="2x/day">2x/day (Morning, Night)</option>
+            <option value="3x/day">3x/day (Morn, Aft, Night)</option>
+          </select>
+          <input
+            type="number"
+            placeholder="Days"
+            value={newMedicine.durationDays}
+            onChange={(e) => setNewMedicine({...newMedicine, durationDays: e.target.value})}
+            className="w-20 border border-border-color rounded-lg p-2 text-sm"
+            min="1"
+            max="90"
           />
           <button 
             onClick={handleAddMedicine}

@@ -134,6 +134,9 @@ const PatientDashboard = () => {
             <button onClick={() => navigate('/patient/ai-assistant')} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition flex-1 md:flex-none text-sm whitespace-nowrap">
               🩺 {t('start_consultation')}
             </button>
+            <button onClick={() => navigate('/patient/reminders')} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition flex-1 md:flex-none text-sm whitespace-nowrap">
+              🔔 My Reminders
+            </button>
             <button onClick={() => navigate('/patient/find-doctor')} className="bg-brand-primary text-white px-4 py-2 rounded-md hover:bg-brand-secondary transition flex-1 md:flex-none text-sm">
               Find a Doctor
             </button>

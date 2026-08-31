@@ -14,7 +14,8 @@ const Login = () => {
     e.preventDefault();
     try {
       const user = await login(email, password);
-      navigate(`/${user.role}/dashboard`);
+      const routeName = user.role === 'asha_worker' ? 'asha' : user.role;
+      navigate(`/${routeName}/dashboard`);
     } catch (err) {
       alert('Login failed');
     }
