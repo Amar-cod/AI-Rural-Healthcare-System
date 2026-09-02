@@ -41,13 +41,13 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ---
 
-## Phase 2D — ASHA Registration + Photo/Report Upload
+## Phase 2D — ASHA Registration + Photo/Report Upload [X]
 **Model:** `gemini-3-pro` — file upload security (multer validation, storage paths) deserves more care than flash typically gives unprompted.
-- [ ] `PatientRecord` model.
-- [ ] Resident registration/update form + duplicate-check UX (DESIGN_PHASE2 §4).
-- [ ] Camera capture (`getUserMedia`) + document upload, `multer`-validated (type/size).
-- [ ] `POST /api/asha/patients`, `POST /api/asha/patients/:id/photo`, `POST /api/asha/patients/:id/report`.
-- [ ] IndexedDB offline queue (`offlineQueue.js`) + sync-on-reconnect + online/offline badge (DESIGN_PHASE2 §8).
+- [x] `PatientRecord` model.
+- [x] Resident registration/update form + duplicate-check UX (DESIGN_PHASE2 §4).
+- [x] Camera capture (`getUserMedia`) + document upload, `multer`-validated (type/size).
+- [x] `POST /api/asha/patients`, `POST /api/asha/patients/:id/photo`, `POST /api/asha/patients/:id/report`.
+- [x] IndexedDB offline queue (`offlineQueue.js`) + sync-on-reconnect + online/offline badge (DESIGN_PHASE2 §8).
 
 **Done when:** An ASHA worker can register a resident, capture a photo, upload a document — all while offline — and it syncs correctly once back online, with no duplicate record created for an existing resident.
 
