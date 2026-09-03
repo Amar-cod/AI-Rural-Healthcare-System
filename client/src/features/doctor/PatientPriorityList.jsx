@@ -13,17 +13,42 @@ const PatientPriorityList = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterPriority, setFilterPriority] = useState('');
+  const [filterVillage, setFilterVillage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [villages, setVillages] = useState([]);
   const [expandedPatientId, setExpandedPatientId] = useState(null);
 
   useEffect(() => {
-    fetchPatients();
-  }, [filterPriority]);
+    fetchVillages();
+  }, []);
+
+  useEffect(() => {
+    // Debounce search slightly
+    const timer = setTimeout(() => {
+      fetchPatients();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filterPriority, filterVillage, searchQuery]);
+
+  const fetchVillages = async () => {
+    try {
+      const res = await api.get('/villages');
+      setVillages(res.data);
+    } catch (err) {
+      console.error('Failed to fetch villages', err);
+    }
+  };
 
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const url = filterPriority ? `/doctors/patients?priority=${filterPriority}` : '/doctors/patients';
-      const res = await api.get(url);
+      let url = '/doctors/patients?';
+      const params = new URLSearchParams();
+      if (filterPriority) params.append('priority', filterPriority);
+      if (filterVillage) params.append('villageId', filterVillage);
+      if (searchQuery) params.append('search', searchQuery);
+      
+      const res = await api.get(url + params.toString());
       setPatients(res.data);
     } catch (err) {
       console.error('Failed to fetch patients', err);
@@ -51,17 +76,36 @@ const PatientPriorityList = () => {
           <h2 className="text-xl font-bold">📋 Patient Priority List</h2>
           <p className="text-sm text-text-secondary mt-1">Your entire patient list, sorted by urgency.</p>
         </div>
-        <select 
-          className="mt-4 sm:mt-0 border border-border-color rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          value={filterPriority}
-          onChange={(e) => setFilterPriority(e.target.value)}
-        >
-          <option value="">All Priorities</option>
-          <option value="critical">Critical Only</option>
-          <option value="high">High Only</option>
-          <option value="medium">Medium Only</option>
-          <option value="routine">Routine Only</option>
-        </select>
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
+          <input
+            type="text"
+            placeholder="Search Name or ID..."
+            className="border border-border-color rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <select 
+            className="border border-border-color rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            value={filterVillage}
+            onChange={(e) => setFilterVillage(e.target.value)}
+          >
+            <option value="">All Villages</option>
+            {villages.map(v => (
+              <option key={v._id} value={v._id}>{v.name}</option>
+            ))}
+          </select>
+          <select 
+            className="border border-border-color rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            value={filterPriority}
+            onChange={(e) => setFilterPriority(e.target.value)}
+          >
+            <option value="">All Priorities</option>
+            <option value="critical">Critical Only</option>
+            <option value="high">High Only</option>
+            <option value="medium">Medium Only</option>
+            <option value="routine">Routine Only</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (

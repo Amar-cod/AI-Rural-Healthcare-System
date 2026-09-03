@@ -17,15 +17,12 @@ const verifyAshaPatientAccess = async (req, res, next) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
 
-    const profile = await require('../models/AshaWorkerProfile').findOne({ userId: req.user.id });
-    if (!profile) {
-      return res.status(403).json({ message: 'ASHA profile not found' });
-    }
+    const village = await require('../models/Village').findOne({ 
+      _id: patient.villageId, 
+      assignedAshaWorkerIds: req.user.id 
+    });
 
-    const villageIdStr = patient.villageId ? patient.villageId.toString() : null;
-    const isAssigned = profile.assignedVillageIds.some(id => id.toString() === villageIdStr);
-
-    if (!isAssigned) {
+    if (!village) {
       return res.status(403).json({ message: 'Not authorized for this village' });
     }
 

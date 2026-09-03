@@ -11,14 +11,17 @@ const CameraCapture = ({ onCapture }) => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
     } catch (err) {
       console.error('Failed to access camera:', err);
       alert('Could not access the camera. Please check permissions.');
     }
   };
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   const stopCamera = () => {
     if (stream) {
@@ -94,7 +97,7 @@ const CameraCapture = ({ onCapture }) => {
       ) : (
         <>
           <video ref={videoRef} autoPlay playsInline className="rounded-lg max-h-48 mb-2 bg-black" />
-          <button type="button" onClick={takePhoto} disabled={isCompressing} className="bg-brand-asha text-white px-4 py-2 rounded-lg font-bold text-sm">
+          <button type="button" onClick={takePhoto} disabled={isCompressing} className="bg-[#8B7FD1] text-white px-4 py-2 rounded-lg font-bold text-sm">
             {isCompressing ? 'Processing...' : 'Capture'}
           </button>
         </>

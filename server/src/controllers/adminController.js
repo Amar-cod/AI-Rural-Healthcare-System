@@ -117,14 +117,11 @@ const assignAshaToVillage = async (req, res) => {
     const profile = await AshaWorkerProfile.findOne({ userId: ashaWorkerId });
     if (!profile) return res.status(404).json({ message: 'ASHA Worker Profile not found' });
 
-    if (!village.assignedAshaWorkerIds.includes(ashaWorkerId)) {
+    // Ensure we don't add duplicates by checking against ObjectId string representation
+    const isAssigned = village.assignedAshaWorkerIds.some(id => id.toString() === ashaWorkerId);
+    if (!isAssigned) {
       village.assignedAshaWorkerIds.push(ashaWorkerId);
       await village.save();
-    }
-
-    if (!profile.assignedVillageIds.includes(villageId)) {
-      profile.assignedVillageIds.push(villageId);
-      await profile.save();
     }
 
     res.json({ message: 'Assigned successfully', village });

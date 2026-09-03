@@ -24,7 +24,11 @@ const getPatientHistory = async (req, res) => {
       .populate('doctorId', 'name')
       .sort({ createdAt: -1 });
 
-    res.json({ consultations, prescriptions, reports });
+    const patientRecords = await require('../models/PatientRecord').find({ patientId })
+      .populate('collectedBy', 'name')
+      .sort({ createdAt: -1 });
+
+    res.json({ consultations, prescriptions, reports, patientRecords });
   } catch (error) {
     console.error('Get history error:', error);
     res.status(500).json({ message: 'Server error.' });

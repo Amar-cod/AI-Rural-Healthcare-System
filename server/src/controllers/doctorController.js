@@ -55,12 +55,21 @@ const getApprovedDoctors = async (req, res) => {
 
 const getPatients = async (req, res) => {
   try {
-    const { priority } = req.query;
+    const { priority, villageId, search } = req.query;
     
     // Base query
     const query = { role: 'patient' };
     if (priority) {
       query.currentPriority = priority;
+    }
+    if (villageId) {
+      query.villageId = villageId;
+    }
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { healthId: { $regex: search, $options: 'i' } }
+      ];
     }
 
     const patients = await User.find(query).select('-passwordHash').sort({ updatedAt: -1 });

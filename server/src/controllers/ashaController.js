@@ -12,7 +12,7 @@ const getMyVillages = async (req, res) => {
       return res.status(404).json({ message: 'ASHA profile not found' });
     }
 
-    const villages = await Village.find({ _id: { $in: profile.assignedVillageIds } });
+    const villages = await Village.find({ assignedAshaWorkerIds: req.user.id });
     res.json(villages);
   } catch (error) {
     console.error('Error fetching ASHA villages:', error);
@@ -24,7 +24,10 @@ const getVillagePatients = async (req, res) => {
   try {
     const villageId = req.params.id;
     const profile = await AshaWorkerProfile.findOne({ userId: req.user.id });
-    if (!profile || !profile.assignedVillageIds.includes(villageId)) {
+    if (!profile) return res.status(404).json({ message: 'ASHA Profile not found' });
+    
+    const village = await Village.findOne({ _id: villageId, assignedAshaWorkerIds: req.user.id });
+    if (!village) {
       return res.status(403).json({ message: 'Not authorized for this village' });
     }
 
@@ -41,7 +44,10 @@ const registerPatient = async (req, res) => {
     const { villageId, name, email, phone, age, gender, symptoms, observations } = req.body;
     
     const profile = await AshaWorkerProfile.findOne({ userId: req.user.id });
-    if (!profile || !profile.assignedVillageIds.includes(villageId)) {
+    if (!profile) return res.status(404).json({ message: 'ASHA Profile not found' });
+
+    const village = await Village.findOne({ _id: villageId, assignedAshaWorkerIds: req.user.id });
+    if (!village) {
       return res.status(403).json({ message: 'Not authorized for this village' });
     }
 
