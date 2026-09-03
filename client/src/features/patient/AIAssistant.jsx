@@ -1,6 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
+
+const LANGUAGES = [
+  { code: 'en', name: 'English', bcp47: 'en-US', flag: '🇬🇧' },
+  { code: 'hi', name: 'हिन्दी', bcp47: 'hi-IN', flag: '🇮🇳' },
+  { code: 'ta', name: 'தமிழ்', bcp47: 'ta-IN', flag: '🇮🇳' },
+  { code: 'te', name: 'తెలుగు', bcp47: 'te-IN', flag: '🇮🇳' },
+  { code: 'bn', name: 'বাংলা', bcp47: 'bn-IN', flag: '🇮🇳' },
+  { code: 'kn', name: 'ಕನ್ನಡ', bcp47: 'kn-IN', flag: '🇮🇳' },
+  { code: 'mr', name: 'मराठी', bcp47: 'mr-IN', flag: '🇮🇳' },
+  { code: 'gu', name: 'ગુજરાતી', bcp47: 'gu-IN', flag: '🇮🇳' },
+  { code: 'ml', name: 'മലയാളം', bcp47: 'ml-IN', flag: '🇮🇳' },
+  { code: 'pa', name: 'ਪੰਜਾਬੀ', bcp47: 'pa-IN', flag: '🇮🇳' },
+  { code: 'or', name: 'ଓଡ଼ିଆ', bcp47: 'or-IN', flag: '🇮🇳' },
+  { code: 'ur', name: 'اردو', bcp47: 'ur-IN', flag: '🇵🇰' }
+];
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState([]);
@@ -9,7 +24,15 @@ const AIAssistant = () => {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
   const [handedOff, setHandedOff] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  
+  // Language state
+  const [selectedLang, setSelectedLang] = useState('en');
+
+  // Voice states: 'idle' | 'listening' | 'speaking'
+  const [voiceState, setVoiceState] = useState('idle');
+  const [voiceSupported, setVoiceSupported] = useState(true);
+  const [speakingMsgIndex, setSpeakingMsgIndex] = useState(null);
+
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
@@ -19,50 +42,119 @@ const AIAssistant = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Initialize SpeechRecognition
+  // Check voice support when language changes
+  const checkVoiceSupport = useCallback((langCode) => {
+    const lang = LANGUAGES.find(l => l.code === langCode);
+    if (!lang) { setVoiceSupported(false); return; }
+
+    // Check TTS support
+    const voices = window.speechSynthesis?.getVoices() || [];
+    const hasTTS = voices.some(v => v.lang.startsWith(langCode) || v.lang.startsWith(lang.bcp47.split('-')[0]));
+
+    // Check STT support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const hasSTT = !!SpeechRecognition;
+
+    setVoiceSupported(hasTTS || hasSTT);
+  }, []);
+
+  // Initialize SpeechRecognition and check voice on language change
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      
+      const lang = LANGUAGES.find(l => l.code === selectedLang);
+      recognition.lang = lang?.bcp47 || 'en-US';
 
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInput(prev => prev + transcript);
-        setIsListening(false);
+        setVoiceState('idle');
       };
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setVoiceState('idle');
+      recognition.onend = () => setVoiceState('idle');
 
       recognitionRef.current = recognition;
     }
-  }, []);
 
-  // Speak text using SpeechSynthesis
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
-    }
+    // voices may load async — check immediately + on voiceschanged
+    checkVoiceSupport(selectedLang);
+    const handleVoicesChanged = () => checkVoiceSupport(selectedLang);
+    window.speechSynthesis?.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', handleVoicesChanged);
+  }, [selectedLang, checkVoiceSupport]);
+
+  // Speak text using SpeechSynthesis in the selected language
+  const speakText = (text, msgIndex) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const lang = LANGUAGES.find(l => l.code === selectedLang);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang?.bcp47 || 'en-US';
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+
+    // Try to find a voice for the language
+    const voices = window.speechSynthesis.getVoices();
+    const matchedVoice = voices.find(v => v.lang.startsWith(lang?.bcp47?.split('-')[0] || 'en'));
+    if (matchedVoice) utterance.voice = matchedVoice;
+
+    utterance.onstart = () => {
+      setVoiceState('speaking');
+      setSpeakingMsgIndex(msgIndex);
+    };
+    utterance.onend = () => {
+      setVoiceState('idle');
+      setSpeakingMsgIndex(null);
+    };
+    utterance.onerror = () => {
+      setVoiceState('idle');
+      setSpeakingMsgIndex(null);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis?.cancel();
+    setVoiceState('idle');
+    setSpeakingMsgIndex(null);
   };
 
   const toggleMic = () => {
+    if (voiceState === 'speaking') {
+      stopSpeaking();
+      return;
+    }
+
     if (!recognitionRef.current) {
       alert('Voice input is not supported in your browser. Please use Chrome or Edge.');
       return;
     }
-    if (isListening) {
+    if (voiceState === 'listening') {
       recognitionRef.current.stop();
-      setIsListening(false);
+      setVoiceState('idle');
     } else {
       recognitionRef.current.start();
-      setIsListening(true);
+      setVoiceState('listening');
     }
+  };
+
+  const handleLanguageChange = (newLang) => {
+    if (sessionId) {
+      // Can't change language mid-session — start fresh
+      if (!window.confirm('Changing language will start a new conversation. Continue?')) return;
+      setMessages([]);
+      setSessionId(null);
+      setSummary(null);
+      setHandedOff(false);
+    }
+    setSelectedLang(newLang);
+    stopSpeaking();
   };
 
   const sendMessage = async () => {
@@ -77,18 +169,20 @@ const AIAssistant = () => {
     try {
       const res = await api.post('/ai/chat', {
         message: trimmed,
-        sessionId
+        sessionId,
+        language: selectedLang
       });
 
       const { sessionId: newSessionId, reply, isComplete, summary: summaryData } = res.data;
       
       if (!sessionId) setSessionId(newSessionId);
 
+      const newMsgIndex = messages.length + 1; // +1 because we just pushed user msg
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
 
-      // Speak the response
+      // Auto-speak the response (if not the final JSON summary)
       if (!isComplete) {
-        speakText(reply);
+        speakText(reply, newMsgIndex);
       }
 
       if (isComplete && summaryData) {
@@ -125,6 +219,8 @@ const AIAssistant = () => {
     routine: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', badge: 'bg-green-600' }
   };
 
+  const currentLang = LANGUAGES.find(l => l.code === selectedLang);
+
   return (
     <div className="min-h-screen bg-accent-soft-blue flex flex-col">
       {/* Header */}
@@ -138,9 +234,24 @@ const AIAssistant = () => {
         </button>
       </div>
 
-      {/* Disclaimer Banner — pinned, not dismissable */}
-      <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
-        <p className="text-sm text-amber-800 text-center font-medium">
+      {/* Language Selector + Disclaimer Banner */}
+      <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
+          <label htmlFor="lang-select" className="text-sm font-semibold text-amber-800">🌐 Language:</label>
+          <select
+            id="lang-select"
+            value={selectedLang}
+            onChange={(e) => handleLanguageChange(e.target.value)}
+            className="bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary cursor-pointer"
+          >
+            {LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>
+                {lang.flag} {lang.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-sm text-amber-800 text-center font-medium flex-1">
           ⚕️ <strong>Important:</strong> This AI assistant collects symptom information and flags possible urgency.
           It does <strong>not</strong> diagnose or prescribe. A qualified doctor makes all final decisions.
         </p>
@@ -165,6 +276,11 @@ const AIAssistant = () => {
             <p className="text-text-secondary max-w-md mx-auto">
               Tell me about your symptoms in your own words. I'll ask a few follow-up questions to help a doctor understand your situation better.
             </p>
+            {selectedLang !== 'en' && (
+              <p className="text-brand-primary font-medium mt-3 text-sm">
+                🌐 You can type in {currentLang?.name} — I'll respond in the same language.
+              </p>
+            )}
           </div>
         )}
 
@@ -176,6 +292,24 @@ const AIAssistant = () => {
                 : 'bg-white border border-border-color text-text-primary rounded-bl-sm shadow-sm'
             }`}>
               <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+              {/* Speaker button on AI messages */}
+              {msg.role === 'assistant' && (
+                <button
+                  onClick={() => speakingMsgIndex === i ? stopSpeaking() : speakText(msg.text, i)}
+                  className={`mt-2 text-xs flex items-center gap-1 transition-colors ${
+                    speakingMsgIndex === i
+                      ? 'text-brand-primary font-semibold'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                  title={speakingMsgIndex === i ? 'Stop speaking' : 'Listen to response'}
+                >
+                  {speakingMsgIndex === i ? (
+                    <><span className="animate-pulse">🔊</span> Speaking...</>
+                  ) : (
+                    <>🔈 Listen</>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -242,23 +376,56 @@ const AIAssistant = () => {
       {!summary && !handedOff && (
         <div className="bg-bg-card border-t border-border-color px-6 py-4">
           <div className="max-w-3xl mx-auto flex items-center space-x-3">
-            <button
-              onClick={toggleMic}
-              className={`p-3 rounded-full transition ${
-                isListening 
-                  ? 'bg-red-500 text-white animate-pulse' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              title={isListening ? 'Stop listening' : 'Start voice input'}
-            >
-              🎤
-            </button>
+            {/* Mic Button with voice state */}
+            <div className="relative">
+              <button
+                onClick={toggleMic}
+                disabled={!voiceSupported && voiceState === 'idle'}
+                className={`p-3 rounded-full transition relative ${
+                  voiceState === 'listening'
+                    ? 'bg-red-500 text-white'
+                    : voiceState === 'speaking'
+                    ? 'bg-brand-primary text-white'
+                    : voiceSupported
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                }`}
+                title={
+                  !voiceSupported
+                    ? 'Voice not available in this language — please type'
+                    : voiceState === 'listening'
+                    ? 'Stop listening'
+                    : voiceState === 'speaking'
+                    ? 'Stop speaking'
+                    : 'Start voice input'
+                }
+              >
+                {voiceState === 'listening' ? (
+                  <span className="animate-pulse text-lg">🎤</span>
+                ) : voiceState === 'speaking' ? (
+                  <span className="animate-pulse text-lg">🔊</span>
+                ) : (
+                  <span className="text-lg">🎤</span>
+                )}
+                {/* Pulsing ring for listening state */}
+                {voiceState === 'listening' && (
+                  <span className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping"></span>
+                )}
+              </button>
+            </div>
+
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? 'Listening...' : 'Describe your symptoms...'}
+              placeholder={
+                voiceState === 'listening'
+                  ? 'Listening...'
+                  : selectedLang !== 'en'
+                  ? `Type in ${currentLang?.name}...`
+                  : 'Describe your symptoms...'
+              }
               className="flex-1 border border-border-color rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
               disabled={loading}
             />
@@ -270,8 +437,40 @@ const AIAssistant = () => {
               Send
             </button>
           </div>
-          {isListening && (
-            <p className="text-center text-xs text-red-500 mt-2 animate-pulse">🔴 Listening... Speak now</p>
+
+          {/* Voice State Indicator */}
+          {voiceState === 'listening' && (
+            <div className="text-center mt-2">
+              <p className="text-xs text-red-500 font-medium animate-pulse">
+                🔴 Listening... Speak now in {currentLang?.name}
+              </p>
+              {/* Waveform animation */}
+              <div className="flex items-end justify-center gap-0.5 mt-1 h-4">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1 bg-red-400 rounded-full animate-bounce"
+                    style={{
+                      animationDelay: `${i * 80}ms`,
+                      height: `${8 + Math.random() * 12}px`,
+                      animationDuration: '0.6s'
+                    }}
+                  ></div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {voiceState === 'speaking' && (
+            <p className="text-center text-xs text-brand-primary mt-2 font-medium animate-pulse">
+              🔊 Speaking... Tap the mic button or speaker to stop
+            </p>
+          )}
+
+          {!voiceSupported && voiceState === 'idle' && selectedLang !== 'en' && (
+            <p className="text-center text-xs text-gray-400 mt-2">
+              ⚠️ Voice not available in {currentLang?.name} — please type your message
+            </p>
           )}
         </div>
       )}

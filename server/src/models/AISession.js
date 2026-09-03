@@ -12,7 +12,8 @@ const aiSessionSchema = new mongoose.Schema({
   symptomsSummary: { type: String, default: '' },
   redFlags: [{ type: String }],
   suggestedPriority: { type: String, enum: ['high', 'medium', 'routine'], default: 'routine' },
-  status: { type: String, enum: ['in-progress', 'handed-off'], default: 'in-progress' }
+  status: { type: String, enum: ['in-progress', 'handed-off'], default: 'in-progress' },
+  language: { type: String, default: 'en' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('AISession', aiSessionSchema);

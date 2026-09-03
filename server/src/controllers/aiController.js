@@ -35,7 +35,7 @@ const tryParseSummary = (text) => {
 
 const chatWithAI = async (req, res) => {
   try {
-    const { message, sessionId } = req.body;
+    const { message, sessionId, language } = req.body;
     const patientId = req.user.id;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -55,7 +55,7 @@ const chatWithAI = async (req, res) => {
       }
     } else {
       // Create a new session
-      session = new AISession({ patientId, messages: [] });
+      session = new AISession({ patientId, messages: [], language: language || 'en' });
     }
 
     // Add user message
@@ -67,8 +67,8 @@ const chatWithAI = async (req, res) => {
       text: m.text
     }));
 
-    // Call Gemini
-    const aiResponse = await geminiService.chat(messagesForGemini);
+    // Call Gemini with the session's language
+    const aiResponse = await geminiService.chat(messagesForGemini, session.language || 'en');
 
     // Add AI response
     session.messages.push({ role: 'assistant', text: aiResponse });
