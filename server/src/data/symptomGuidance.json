@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Fever",
+    "isRedFlag": false,
+    "generalGuidance": "Rest and drink plenty of fluids. You can take over-the-counter medication like Paracetamol to reduce fever. If fever persists for more than 3 days, please see a doctor."
+  },
+  {
+    "name": "Headache",
+    "isRedFlag": false,
+    "generalGuidance": "Rest in a quiet, dark room. Drink water to stay hydrated. If the headache is sudden and very severe, please seek immediate medical help."
+  },
+  {
+    "name": "Body pain",
+    "isRedFlag": false,
+    "generalGuidance": "Rest and avoid strenuous activity. Gentle stretching or a warm bath might help. If the pain is severe or localized to one specific area, consult a doctor."
+  },
+  {
+    "name": "Cough",
+    "isRedFlag": false,
+    "generalGuidance": "Drink warm liquids like tea or warm water with honey. Use a humidifier if the air is dry. If you cough up blood or have trouble breathing, see a doctor immediately."
+  },
+  {
+    "name": "Cold",
+    "isRedFlag": false,
+    "generalGuidance": "Get plenty of rest and drink fluids. Warm saltwater gargles can help soothe a sore throat."
+  },
+  {
+    "name": "Sore throat",
+    "isRedFlag": false,
+    "generalGuidance": "Gargle with warm salt water. Drink warm liquids. Avoid smoking or passive smoke."
+  },
+  {
+    "name": "Vomiting",
+    "isRedFlag": false,
+    "generalGuidance": "Take small, frequent sips of water or oral rehydration solution (ORS) to prevent dehydration. Avoid solid food until vomiting stops."
+  },
+  {
+    "name": "Diarrhea",
+    "isRedFlag": false,
+    "generalGuidance": "Drink plenty of fluids, especially oral rehydration solution (ORS), to replace lost water and salts. Eat bland foods like rice or bananas."
+  },
+  {
+    "name": "Weakness",
+    "isRedFlag": false,
+    "generalGuidance": "Rest and ensure you are eating a balanced diet and drinking enough water."
+  },
+  {
+    "name": "Dizziness",
+    "isRedFlag": false,
+    "generalGuidance": "Sit or lie down immediately. Drink water. Avoid sudden movements."
+  },
+  {
+    "name": "Breathing difficulty",
+    "isRedFlag": true,
+    "generalGuidance": "URGENT WARNING: Breathing difficulty can be a sign of a serious condition. Please seek immediate medical attention or go to the nearest hospital."
+  },
+  {
+    "name": "Chest pain",
+    "isRedFlag": true,
+    "generalGuidance": "URGENT WARNING: Chest pain is a medical emergency. Please seek immediate emergency medical care."
+  },
+  {
+    "name": "Abdominal pain",
+    "isRedFlag": false,
+    "generalGuidance": "Rest and avoid heavy meals. If the pain is severe, sudden, or accompanied by fever or vomiting, see a doctor."
+  }
+]

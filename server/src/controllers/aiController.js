@@ -75,17 +75,42 @@ const chatWithAI = async (req, res) => {
 
     // Check if the response is the final JSON summary
     const summary = tryParseSummary(aiResponse);
+    let finalReply = aiResponse;
+
     if (summary) {
       session.symptomsSummary = summary.summary;
       session.redFlags = summary.redFlags || [];
       session.suggestedPriority = summary.suggestedPriority;
+
+      // Phase 2H: Intercept JSON and enforce safety boundary with pre-approved guidance
+      if (session.redFlags.length > 0 || session.suggestedPriority === 'high') {
+        finalReply = 'URGENT WARNING: You have reported symptoms that require immediate medical attention. Please go to the nearest hospital or clinic immediately.';
+      } else {
+        // Query database for non-red-flag symptoms mentioned in the summary
+        const Symptom = require('../models/Symptom');
+        const dbSymptoms = await Symptom.find();
+        
+        // Simple keyword match against the summary text (case-insensitive)
+        const matchedGuidance = dbSymptoms
+          .filter(s => !s.isRedFlag && summary.summary.toLowerCase().includes(s.name.toLowerCase()))
+          .map(s => s.generalGuidance);
+
+        if (matchedGuidance.length > 0) {
+          finalReply = matchedGuidance.join(' ') + ' This is not a diagnosis. See a doctor if this persists or worsens.';
+        } else {
+          finalReply = 'Please rest and monitor your symptoms. This is not a diagnosis. See a doctor if this persists or worsens.';
+        }
+      }
+
+      // Overwrite the last assistant message with the safe guidance instead of raw JSON
+      session.messages[session.messages.length - 1].text = finalReply;
     }
 
     await session.save();
 
     res.json({
       sessionId: session._id,
-      reply: aiResponse,
+      reply: finalReply,
       isComplete: !!summary,
       summary: summary || null
     });

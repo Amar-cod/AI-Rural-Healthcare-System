@@ -24,6 +24,7 @@ const AIAssistant = () => {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
   const [handedOff, setHandedOff] = useState(false);
+  const [symptomsList, setSymptomsList] = useState([]);
   
   // Language state
   const [selectedLang, setSelectedLang] = useState('en');
@@ -41,6 +42,19 @@ const AIAssistant = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Fetch symptoms for quick select
+  useEffect(() => {
+    const fetchSymptoms = async () => {
+      try {
+        const res = await api.get('/symptoms');
+        setSymptomsList(res.data);
+      } catch (err) {
+        console.error('Failed to fetch symptoms', err);
+      }
+    };
+    fetchSymptoms();
+  }, []);
 
   // Check voice support when language changes
   const checkVoiceSupport = useCallback((langCode) => {
@@ -372,9 +386,28 @@ const AIAssistant = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input Area with Quick Select Chips */}
       {!summary && !handedOff && (
-        <div className="bg-bg-card border-t border-border-color px-6 py-4">
+        <div className="bg-white p-4 border-t border-border-color shadow-sm rounded-b-2xl">
+          {/* Quick Select Chips */}
+          {symptomsList.length > 0 && !loading && (
+            <div className="flex overflow-x-auto gap-2 pb-3 mb-2 hide-scrollbar">
+              {symptomsList.map((symptom) => (
+                <button
+                  key={symptom._id}
+                  onClick={() => setInput(prev => prev ? prev + ', ' + symptom.name : symptom.name)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                    symptom.isRedFlag 
+                      ? 'border-red-300 text-red-700 bg-red-50 hover:bg-red-100' 
+                      : 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100'
+                  }`}
+                >
+                  {symptom.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="max-w-3xl mx-auto flex items-center space-x-3">
             {/* Mic Button with voice state */}
             <div className="relative">

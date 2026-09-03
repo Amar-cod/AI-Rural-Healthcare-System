@@ -18,6 +18,7 @@ const medicineRequestRoutes = require('./routes/medicineRequestRoutes');
 const reminderRoutes = require('./routes/reminderRoutes');
 const ashaRoutes = require('./routes/ashaRoutes');
 const villageRoutes = require('./routes/villageRoutes');
+const symptomRoutes = require('./routes/symptomRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -49,6 +50,7 @@ app.use('/api/medicine-requests', medicineRequestRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/asha', ashaRoutes);
 app.use('/api/villages', villageRoutes);
+app.use('/api/symptoms', symptomRoutes);
 
 const PORT = process.env.PORT || 5000;
 const http = require('http');
