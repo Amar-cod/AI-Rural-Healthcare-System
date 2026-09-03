@@ -114,31 +114,37 @@ const AdminDashboard = () => {
           </form>
 
           <div className="space-y-3">
-            {villages.map(v => (
-              <div key={v._id} className="p-3 bg-gray-50 border rounded-xl flex flex-col md:flex-row justify-between md:items-center gap-3">
-                <div>
-                  <p className="font-bold">{v.name}</p>
-                  <p className="text-xs text-gray-500">{v.district}, {v.state}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select 
-                    className="border p-1 text-sm rounded bg-white w-40"
-                    onChange={(e) => handleAssignAsha(v._id, e.target.value)}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Assign ASHA...</option>
-                    {ashaWorkers.map(a => (
-                      <option key={a._id} value={a._id}>{a.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {v.assignedAshaWorkerIds && v.assignedAshaWorkerIds.length > 0 && (
-                  <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
-                    Assigned: {v.assignedAshaWorkerIds.map(a => a.name).join(', ')}
-                  </div>
-                )}
+            {villages.length === 0 ? (
+              <div className="text-center p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p className="text-text-secondary text-sm">No villages created yet.</p>
               </div>
-            ))}
+            ) : (
+              villages.map(v => (
+                <div key={v._id} className="p-3 bg-gray-50 border rounded-xl flex flex-col md:flex-row justify-between md:items-center gap-3">
+                  <div>
+                    <p className="font-bold">{v.name}</p>
+                    <p className="text-xs text-gray-500">{v.district}, {v.state}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className="border p-1 text-sm rounded bg-white w-40"
+                      onChange={(e) => handleAssignAsha(v._id, e.target.value)}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Assign ASHA...</option>
+                      {ashaWorkers.map(a => (
+                        <option key={a._id} value={a._id}>{a.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {v.assignedAshaWorkerIds && v.assignedAshaWorkerIds.length > 0 && (
+                    <div className="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                      Assigned: {v.assignedAshaWorkerIds.map(a => a.name).join(', ')}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -155,14 +161,20 @@ const AdminDashboard = () => {
           </form>
 
           <div className="space-y-3">
-            {ashaWorkers.map(a => (
-              <div key={a._id} className="p-3 bg-gray-50 border rounded-xl flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{a.name}</p>
-                  <p className="text-xs text-gray-500">{a.email} | {a.phone}</p>
-                </div>
+            {ashaWorkers.length === 0 ? (
+              <div className="text-center p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p className="text-text-secondary text-sm">No ASHA workers registered yet.</p>
               </div>
-            ))}
+            ) : (
+              ashaWorkers.map(a => (
+                <div key={a._id} className="p-3 bg-gray-50 border rounded-xl flex justify-between items-center">
+                  <div>
+                    <p className="font-bold">{a.name}</p>
+                    <p className="text-xs text-gray-500">{a.email} | {a.phone}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

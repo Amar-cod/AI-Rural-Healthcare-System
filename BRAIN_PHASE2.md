@@ -31,11 +31,11 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2C — ASHA Worker Role
 **Model:** `gemini-3-flash` — mirrors the existing role-guard pattern from Phase 1, low risk.
-- [ ] Add `asha_worker` to `User` role enum.
-- [ ] `Village` + `AshaWorkerProfile` models.
-- [ ] ASHA login, role guard, lavender-accented dashboard shell.
-- [ ] `GET /api/asha/villages` (assigned villages only).
-- [ ] Admin: simple UI to create villages and assign ASHA workers to them (needed before ASHA can do anything).
+- [x] Add `asha_worker` to `User` role enum.
+- [x] `Village` + `AshaWorkerProfile` models.
+- [x] ASHA login, role guard, lavender-accented dashboard shell.
+- [x] `GET /api/asha/villages` (assigned villages only).
+- [x] Admin: simple UI to create villages and assign ASHA workers to them (needed before ASHA can do anything).
 
 **Done when:** An ASHA worker logs in and sees only their assigned village(s), nothing else.
 
@@ -55,10 +55,10 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2E — Village-Linked Patient History
 **Model:** `gemini-3-pro` — authorization logic (doctor ↔ patient ↔ village) is exactly the kind of place bugs hide.
-- [ ] Extend `GET /api/patients/:id/history` to include `PatientRecord` entries.
-- [ ] `GET /api/villages/:id/history` (admin/doctor only).
-- [ ] Doctor "Find Patient" gets a village filter; Patient Profile gets an "ASHA Field Records" tab (DESIGN_PHASE2 §5).
-- [ ] **Explicit security test required** (see below).
+- [x] Extend `GET /api/patients/:id/history` to include `PatientRecord` entries.
+- [x] `GET /api/villages/:id/history` (admin/doctor only).
+- [x] Doctor "Find Patient" gets a village filter; Patient Profile gets an "ASHA Field Records" tab (DESIGN_PHASE2 §5).
+- [x] **Explicit security test required** (see below).
 
 **Done when:** A doctor can find a patient, filter by village, and see ASHA records alongside consultations — and a doctor/patient CANNOT access another patient's history by manipulating an ID (test this directly via API, not just UI).
 
@@ -66,9 +66,9 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2F — Multilingual Chatbot (text)
 **Model:** `claude-sonnet-4-5-thinking` (medium) if available — prompt engineering across 12 languages while preserving the strict JSON safety contract from Phase 1 is delicate. Fall back to `gemini-3-pro` if Claude quota is unavailable.
-- [ ] Extend `geminiService.js` per ARCHITECTURE_PHASE2 §4 (language-aware prompt, English-keyed JSON).
-- [ ] Language selector UI.
-- [ ] Test the safety boundary (no-diagnosis refusal, red-flag JSON) in at least 3 different languages, not just English.
+- [x] Extend `geminiService.js` per ARCHITECTURE_PHASE2 §4 (language-aware prompt, English-keyed JSON).
+- [x] Language selector UI.
+- [x] Test the safety boundary (no-diagnosis refusal, red-flag JSON) in at least 3 different languages, not just English.
 
 **Done when:** Switching language changes the conversation language, but the doctor's dashboard still receives correctly-parsed priority/summary data regardless of language selected — and the no-diagnosis refusal still holds in non-English languages.
 
@@ -76,9 +76,9 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2G — Voice Input/Output (multilingual)
 **Model:** `gemini-3-pro`
-- [ ] Feature-detect voice support per selected language before enabling mic (ARCHITECTURE_PHASE2 §4).
-- [ ] Listening/Processing/Speaking UI states (DESIGN_PHASE2 §6).
-- [ ] Text fallback when unsupported.
+- [x] Feature-detect voice support per selected language before enabling mic (ARCHITECTURE_PHASE2 §4).
+- [x] Listening/Processing/Speaking UI states (DESIGN_PHASE2 §6).
+- [x] Text fallback when unsupported.
 
 **Done when:** Voice works end-to-end in at least English + Hindi (test these two thoroughly), and gracefully degrades to text-only for any language your browser doesn't support — never a silent failure.
 
@@ -86,10 +86,10 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2H — Symptom Database + Safer Guidance
 **Model:** `claude-sonnet-4-5-thinking` (high) if available, else `gemini-3-pro` — this is the second-most safety-critical phase after Phase 1's original AI triage; take the same care.
-- [ ] `Symptom` model + seed script from `symptomGuidance.json`.
-- [ ] Symptom quick-select chips (DESIGN_PHASE2 §7).
-- [ ] Red-flag-first check, then general non-diagnostic guidance only if no red flags, sourced from the reviewed config file — never generated ad-hoc by the model for this specific step.
-- [ ] Every interaction stored for doctor review (reuse `AISession`/`PatientRecord` as appropriate).
+- [x] `Symptom` model + seed script from `symptomGuidance.json`.
+- [x] Symptom quick-select chips (DESIGN_PHASE2 §7).
+- [x] Red-flag-first check, then general non-diagnostic guidance only if no red flags, sourced from the reviewed config file — never generated ad-hoc by the model for this specific step.
+- [x] Every interaction stored for doctor review (reuse `AISession`/`PatientRecord` as appropriate).
 
 **Done when:** Selecting Fever + Headache + Body pain triggers duration/red-flag questions first; if no red flags, general self-care info appears clearly labeled "not a diagnosis," with a persistent "see a doctor if this persists or worsens" note.
 
@@ -97,9 +97,9 @@ Give Antigravity all 4 Phase 2 docs (`PRD_PHASE2.md`, `DESIGN_PHASE2.md`, `ARCHI
 
 ## Phase 2I — Integration Testing & Polish
 **Model:** `gemini-3-flash`
-- [ ] Full cross-role test: Patient (multilingual/voice) → AI → Doctor (priority list, village filter) → ASHA (offline registration synced in) → Admin (village management, analytics if built).
-- [ ] Responsive + empty/loading/error states for every new screen.
-- [ ] Update root README/demo script to include the new ASHA + multilingual + reminders flow.
+- [x] Full cross-role test: Patient (multilingual/voice) → AI → Doctor (priority list, village filter) → ASHA (offline registration synced in) → Admin (village management, analytics if built).
+- [x] Responsive + empty/loading/error states for every new screen.
+- [x] Update root README/demo script to include the new ASHA + multilingual + reminders flow.
 
 **Done when:** A single rehearsed run-through touches every Phase 2 feature without manual DB edits or restarts.
 

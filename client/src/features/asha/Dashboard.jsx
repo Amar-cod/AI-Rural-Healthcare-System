@@ -99,7 +99,8 @@ const AshaDashboard = () => {
                 </span>
               ) : (
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                  <span className="text-gray-400">✗</span> Offline — {queueCount} records queued
+                  <span className="text-gray-400">✗</span> 
+                  Offline — {queueCount === 0 ? 'No records pending sync' : `${queueCount} records queued`}
                 </span>
               )}
             </div>

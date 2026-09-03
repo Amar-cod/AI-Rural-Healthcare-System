@@ -115,7 +115,7 @@ const PatientPriorityList = () => {
         </div>
       ) : patients.length === 0 ? (
         <div className="text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-          <p className="text-text-secondary">No patients found in this category.</p>
+          <p className="text-text-secondary">No patients found. Try clearing your search or village filter.</p>
         </div>
       ) : (
         <div className="space-y-3">
