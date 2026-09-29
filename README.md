@@ -15,20 +15,25 @@ Rural healthcare suffers from a severe shortage of doctors, overwhelming patient
 
 This system bridges the gap between field workers (ASHAs), patients, and doctors. It provides an offline-first mobile web app for ASHAs to log data in the field, a multilingual AI triage assistant for patients to report symptoms, and a prioritized dashboard for doctors to efficiently manage critical cases.
 
-## 🎥 Demo
+## 📸 Screenshots
 
-![Demo GIF](docs/demo.gif)
-> TODO: add screenshot (Demo GIF)
+<p align="center">
+  <img src="docs/screenshots/doctor-priority-dashboard.png" width="700" alt="Doctor Priority Dashboard" />
+  <br />
+  <em>Doctor Priority Dashboard — AI-powered patient queue sorted by urgency with village filtering</em>
+</p>
 
-### Screenshots
-![ASHA offline flow](docs/screenshots/asha-offline.png)
-> TODO: add screenshot (ASHA offline flow)
+<p align="center">
+  <img src="docs/screenshots/multilingual-voice-triage.png" width="700" alt="Multilingual Voice Triage" />
+  <br />
+  <em>AI Symptom Assistant — Multilingual voice & text triage powered by Google Gemini</em>
+</p>
 
-![Doctor priority dashboard](docs/screenshots/doctor-dashboard.png)
-> TODO: add screenshot (Doctor priority dashboard)
-
-![Multilingual voice triage](docs/screenshots/voice-triage.png)
-> TODO: add screenshot (Multilingual voice triage)
+<p align="center">
+  <img src="docs/screenshots/asha-offline-flow.png" width="700" alt="ASHA Worker Offline Flow" />
+  <br />
+  <em>ASHA Worker Dashboard — Offline-first patient registration and village management</em>
+</p>
 
 ## 🌟 Key Features
 
