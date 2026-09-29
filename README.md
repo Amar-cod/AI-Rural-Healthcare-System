@@ -1,51 +1,203 @@
 # AI Rural Healthcare System
 
-A comprehensive, AI-driven healthcare platform designed specifically for rural and low-resource environments. This system bridges the gap between field workers (ASHAs), patients, and doctors using cutting-edge AI triage, offline-first capabilities, and multilingual voice interfaces.
+A comprehensive, AI-driven healthcare platform designed specifically for rural and low-resource environments.
 
-## 🌟 Key Features (Phase 1 & Phase 2)
+![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
+![React](https://img.shields.io/badge/React-19.x-blue)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+## 🩺 Problem Statement
+
+Rural healthcare suffers from a severe shortage of doctors, overwhelming patient loads, and significant language barriers. ASHA workers on the ground face poor internet connectivity and lack digital tools to efficiently triage and track patients, leading to delayed interventions for critical cases.
+
+## 💡 Solution Overview
+
+This system bridges the gap between field workers (ASHAs), patients, and doctors. It provides an offline-first mobile web app for ASHAs to log data in the field, a multilingual AI triage assistant for patients to report symptoms, and a prioritized dashboard for doctors to efficiently manage critical cases.
+
+## 🎥 Demo
+
+![Demo GIF](docs/demo.gif)
+> TODO: add screenshot (Demo GIF)
+
+### Screenshots
+![ASHA offline flow](docs/screenshots/asha-offline.png)
+> TODO: add screenshot (ASHA offline flow)
+
+![Doctor priority dashboard](docs/screenshots/doctor-dashboard.png)
+> TODO: add screenshot (Doctor priority dashboard)
+
+![Multilingual voice triage](docs/screenshots/voice-triage.png)
+> TODO: add screenshot (Multilingual voice triage)
+
+## 🌟 Key Features
 
 ### 1. Multilingual Voice AI Triage
-Patients can interact with the AI assistant in **12 different regional languages**. 
-- **Voice-to-Text & Text-to-Speech:** Patients can speak to the AI in their native language and hear the responses read back to them.
-- **Intelligent Triage:** The AI safely collects symptoms, duration, and severity.
-- **Safety Boundary:** The AI is strictly prevented from diagnosing or prescribing. If it detects "Red Flag" symptoms (e.g., chest pain), it immediately escalates the priority to Critical and outputs a hardcoded emergency warning instead of generated text.
-- **Symptom Quick-Select:** A horizontally scrollable row of chips allows patients to tap symptoms (with Red Flag symptoms visually outlined in red).
+- **Voice & Text Interface:** Patients can interact in English or Hindi using the Web Speech API.
+- **Intelligent Triage:** AI collects symptoms and creates a concise summary for the doctor.
+- **Safety Boundary:** The AI is restricted from diagnosing or prescribing. Red Flag symptoms trigger an immediate hardcoded emergency warning and escalate the patient to Critical priority.
+- **Symptom Quick-Select:** Interactive chips for common symptoms with visual outlines for severe indicators.
 
 ### 2. ASHA Worker Offline-First Field App
-ASHA (Accredited Social Health Activist) workers are the backbone of rural healthcare.
-- **Offline Registration & Reporting:** ASHAs can register new patients, log vital signs, and upload photos of physical symptoms or local test reports even with **zero internet connection**.
-- **Background Sync:** The app uses a Service Worker and IndexedDB to securely queue all data locally. The moment the device reconnects to the internet, the queue silently syncs to the server.
-- **Village Patient Lists:** ASHAs can view the complete list of residents they are responsible for in their assigned village.
+- **Offline Registration & Reporting:** ASHAs can register patients and log vitals without an active internet connection.
+- **Background Sync:** Uses Service Workers and IndexedDB to queue local data and silently sync to the server upon reconnection.
+- **Village Patient Lists:** Dedicated views for ASHAs to manage residents in their assigned villages.
 
 ### 3. Doctor Priority Dashboard & Village Filtering
-Doctors face overwhelming patient loads. The dashboard helps them focus on the most critical cases first.
-- **AI-Powered Priority Queue:** Patients are automatically sorted into Routine, Medium, High, or Critical based on the AI's triage summary.
-- **Village-Level Filtering:** Doctors can filter the queue by specific villages to coordinate care or spot local outbreaks.
-- **Comprehensive Patient History:** The drawer opens to reveal a tabbed interface containing:
-  - AI Consultation Summaries
-  - ASHA Field Records (including vital signs and photo uploads)
-  - Past Prescriptions
+- **AI-Powered Priority Queue:** Patients are sorted (Routine, Medium, High, Critical) based on triage data.
+- **Village-Level Filtering:** Allows doctors to filter queues geographically to spot local trends.
+- **Comprehensive Patient History:** Tabbed interface for AI summaries, ASHA field records, local photo uploads, and past prescriptions.
 
-### 4. Automated SMS Reminders
-Medication adherence is a major challenge in rural areas.
-- **Cron Jobs:** A background job runs daily to check active prescriptions.
-- **Twilio SMS:** The system automatically dispatches SMS reminders to patients to take their medicine or attend their follow-up appointments.
+### 4. Automated Reminders
+- **Cron Jobs:** Background tasks run periodically to check active prescriptions.
+- **Push Notifications:** The system sends Web Push notifications to remind patients to take medications.
 
 ### 5. Admin Village Management
-- Admins can create new Villages (District, State) and register ASHA workers.
-- Admins assign ASHA workers to specific villages, ensuring correct data access and routing.
+- Admins can create and manage Villages (District, State).
+- Centralized registration and assignment of ASHA workers to specific villages.
 
----
+## 🏗 System Architecture
+
+```mermaid
+flowchart TD
+    Client[Client App\nReact + SW/IndexedDB]
+    API[Express API Server]
+    Mongo[(MongoDB)]
+    Gemini[Google Gemini AI]
+    Cron[Cron Job]
+    
+    Client -- Offline Queue/Sync --> API
+    API <--> Mongo
+    API <--> Gemini
+    Cron -- Checks Prescriptions --> Mongo
+    Cron -- Sends Push Notifications --> Client
+```
+*For more details, see [Architecture Documentation](docs/architecture.md).*
+
+## 🛠 Tech Stack
+
+| Domain | Technologies |
+|---|---|
+| **Frontend** | React, Vite, Tailwind CSS, IndexedDB, Web Speech API |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB Atlas, Mongoose |
+| **AI / Triage** | Google Gemini Flash |
+| **Services** | Web Push (Notifications), Multer (Local Uploads) |
+
+## 👥 Roles & Permissions
+
+| Role | Key Capabilities |
+|---|---|
+| **Admin** | Create villages, register and assign ASHA workers, view system-wide stats. |
+| **ASHA Worker** | View assigned village residents, register new patients, log vitals, upload photos/reports (offline-capable). |
+| **Patient** | Access AI symptom triage (text/voice), receive medication reminders, view their own prescriptions and reports. |
+| **Doctor** | View prioritized patient queue, filter by village, review AI summaries/ASHA records, write prescriptions. |
+
+## 📂 Project Structure
+
+```text
+AI Rural Healthcare System
+├── client/                 # React frontend application
+│   ├── public/             # Static assets and Service Worker (sw.js)
+│   └── src/                # React components, i18n, and IndexedDB logic
+└── server/                 # Node.js Express backend
+    ├── scripts/            # Database seeding and migration scripts
+    └── src/
+        ├── controllers/    # Request handlers for routes
+        ├── cron/           # Scheduled jobs for reminders
+        ├── middleware/     # JWT Auth and Multer upload middleware
+        ├── models/         # Mongoose database schemas
+        ├── routes/         # Express API route definitions
+        └── services/       # External integrations (Gemini, Web Push, PDF generation)
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js**: v18.x or higher
+- **MongoDB**: A MongoDB Atlas account or local instance
+- **Gemini API Key**: For AI triage capabilities
+- **VAPID Keys**: For Web Push notifications (generate via `npx web-push generate-vapid-keys`)
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd "AI Rural Healthcare System"
+   ```
+
+2. **Install Server Dependencies**
+   ```bash
+   cd server
+   npm install
+   ```
+
+3. **Install Client Dependencies**
+   ```bash
+   cd ../client
+   npm install
+   ```
+
+4. **Configure Environment Variables**
+   Copy the example environment files and fill in your details:
+   ```bash
+   # In the server directory
+   cp .env.example .env
+   
+   # In the client directory
+   cp .env.example .env
+   ```
+
+   **Server Variables:**
+   | Variable | Description |
+   |---|---|
+   | `PORT` | Server port (default: 5000) |
+   | `MONGO_URI` | MongoDB connection string |
+   | `JWT_SECRET` | Secret key for JWT authentication |
+   | `CLIENT_URL` | Frontend URL for CORS |
+   | `GEMINI_API_KEY` | Google Gemini API key |
+   | `VAPID_PUBLIC_KEY` | Web Push public key |
+   | `VAPID_PRIVATE_KEY` | Web Push private key |
+   | `VAPID_SUBJECT` | Web Push subject (mailto:your@email.com) |
+
+   **Client Variables:**
+   | Variable | Description |
+   |---|---|
+   | `VITE_API_URL` | Backend API URL |
+   | `VITE_VAPID_PUBLIC_KEY` | Web Push public key |
+
+5. **Seed the Database**
+   ```bash
+   cd ../server
+   npm run seed
+   ```
+
+6. **Run the Application**
+   - **Terminal 1 (Backend):**
+     ```bash
+     cd server
+     npm run dev
+     ```
+   - **Terminal 2 (Frontend):**
+     ```bash
+     cd client
+     npm run dev
+     ```
+
+## 🔐 Default Demo Credentials
+
+These credentials are created by the seed script for local demonstration purposes only. Do not use them in production.
+
+| Role | Email | Password |
+|---|---|---|
+| **Admin** | admin@example.com | password |
+| **Doctor** | doctor@example.com | password |
+| **ASHA Worker** | asha1@example.com | password |
 
 ## 🚀 How to Run the Demo (End-to-End Script)
 
 Follow this script to demonstrate the full capabilities of the system.
-
-### Prerequisites
-Make sure both servers are running:
-1. Terminal 1 (Backend): `cd server && npm run dev`
-2. Terminal 2 (Frontend): `cd client && npm run dev`
-3. Ensure MongoDB Atlas is connected and Twilio credentials are in `.env`.
 
 ### Step 1: Admin Setup
 1. Go to `http://localhost:5173/` and log in as the default admin (`admin@example.com` / `password`).
@@ -81,15 +233,42 @@ Make sure both servers are running:
    - **ASHA Field Records:** Shows the vitals and the rash photo uploaded earlier.
 5. **Prescribe:** Click "Start Telemedicine Consult". Write a prescription and set the duration to 5 days. Submit.
 
-### Step 5: SMS Reminders
+### Step 5: Reminders
 1. Open your terminal where the backend is running.
-2. The cron job runs every minute (or as configured). Watch the console for `Running Daily Reminders Job`.
-3. It will detect the active prescription and fire off an SMS to Ramesh's registered phone number via Twilio.
+2. The cron job runs periodically to check active prescriptions.
+3. It will detect the active prescription and fire off a Web Push Notification reminder to the patient.
 
----
+## 📡 API Overview
 
-## 🛠 Tech Stack
-- **Frontend:** React, Vite, Tailwind CSS, IndexedDB, Web Speech API
-- **Backend:** Node.js, Express, MongoDB (Mongoose)
-- **AI/LLM:** Google Gemini Flash
-- **Cloud/Services:** Cloudinary (Photos), Twilio (SMS)
+| Method | Endpoint | Role Required | Purpose |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | None | Authenticate user and issue JWT |
+| `GET` | `/api/admin/stats` | Admin | Retrieve system-wide statistics |
+| `POST` | `/api/asha/patients/:id/photo` | ASHA | Upload patient photo/vitals |
+| `POST` | `/api/ai/chat` | Patient | Send messages to Gemini AI triage |
+| `GET` | `/api/doctor/queue` | Doctor | Fetch prioritized patient queue |
+| `POST` | `/api/prescriptions` | Doctor | Create a new prescription for a patient |
+
+## ⚠️ AI Safety & Limitations
+
+- **Triage Only:** The AI is strictly programmed to perform triage. It does **not** diagnose conditions or prescribe medications.
+- **Red Flag Escalation:** Certain critical keywords (e.g., chest pain, severe bleeding) immediately bypass the AI logic and trigger a hardcoded emergency response.
+- **Not a Medical Device:** This system is for demonstration and administrative prioritization only.
+- **AI Imperfections:** Responses generated by the Google Gemini model may be imperfect or contextually limited.
+- **Data Privacy:** Do not enter real Protected Health Information (PHI) into this system as it sends text directly to external AI APIs.
+
+## 🔮 Roadmap / Future Scope
+
+- **Video Consultations:** Integrate WebRTC for live telemedicine calls between doctors and patients.
+- **WhatsApp Integration:** Fallback notification delivery via WhatsApp for patients without smartphones.
+- **Expanded Languages:** Add support for additional regional Indian languages beyond English and Hindi.
+- **Advanced Analytics:** Predictive modeling to identify potential disease outbreaks at the village level.
+- **Diagnostic Device Integration:** Direct Bluetooth sync with digital thermometers and blood pressure monitors for ASHA workers.
+
+## ✍️ Author
+**Amar**
+B.Tech IT, Rungta College of Engineering and Technology, Bhilai
+[LinkedIn Placeholder] | [Email Placeholder]
+
+## 📄 License
+This project is licensed under the MIT License.
