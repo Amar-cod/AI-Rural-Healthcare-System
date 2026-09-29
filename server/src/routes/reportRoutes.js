@@ -22,6 +22,11 @@ router.get('/:id/download', protect, async (req, res) => {
       return res.status(404).json({ message: 'No file attached to this report.' });
     }
 
+    // If it's a Cloudinary/external URL, just redirect
+    if (report.fileUrl.startsWith('http')) {
+      return res.redirect(report.fileUrl);
+    }
+
     // fileUrl is like '/uploads/prescription_123.pdf'
     // Remove leading slash if it exists to prevent path.join from going to root of drive on Windows
     const relativeUrl = report.fileUrl.startsWith('/') ? report.fileUrl.substring(1) : report.fileUrl;

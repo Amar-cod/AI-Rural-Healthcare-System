@@ -36,7 +36,7 @@ const PatientHistoryPanel = ({ patientId }) => {
     { id: 'asha', label: 'ASHA Field Records', count: history.patientRecords?.length || 0 }
   ];
 
-  const getBaseUrl = () => import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const getBaseUrl = () => import.meta.env.VITE_API_URL?.replace('/api', '') || window.location.origin;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-border-color h-full flex flex-col">

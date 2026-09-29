@@ -1,16 +1,14 @@
 const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
 
 const generatePrescriptionPDF = (prescription, patient, doctor) => {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ margin: 50 });
-      const fileName = `prescription_${prescription._id}.pdf`;
-      const filePath = path.join(__dirname, '../../uploads', fileName);
-      
-      const writeStream = fs.createWriteStream(filePath);
-      doc.pipe(writeStream);
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        resolve(Buffer.concat(buffers));
+      });
 
       // Header
       doc.fontSize(20).text('Medical Prescription', { align: 'center' });
@@ -18,7 +16,6 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
 
       // Doctor Info
       doc.fontSize(12).text(`Doctor: ${doctor.name}`, { align: 'right' });
-      // Specialization could be added here if passed
 
       // Patient Info
       doc.text(`Patient: ${patient.name}`, { align: 'left' });
@@ -41,9 +38,6 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
       doc.fontSize(10).text('This is a digitally generated prescription.', { align: 'center', color: 'gray' });
 
       doc.end();
-
-      writeStream.on('finish', () => resolve(`/uploads/${fileName}`));
-      writeStream.on('error', reject);
     } catch (err) {
       reject(err);
     }
@@ -54,11 +48,11 @@ const generateReportPDF = (report, patient, doctor) => {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ margin: 50 });
-      const fileName = `report_${report._id}.pdf`;
-      const filePath = path.join(__dirname, '../../uploads', fileName);
-      
-      const writeStream = fs.createWriteStream(filePath);
-      doc.pipe(writeStream);
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        resolve(Buffer.concat(buffers));
+      });
 
       // Header
       doc.fontSize(20).text('Medical Report', { align: 'center' });
@@ -77,9 +71,6 @@ const generateReportPDF = (report, patient, doctor) => {
       doc.text(report.content);
 
       doc.end();
-
-      writeStream.on('finish', () => resolve(`/uploads/${fileName}`));
-      writeStream.on('error', reject);
     } catch (err) {
       reject(err);
     }

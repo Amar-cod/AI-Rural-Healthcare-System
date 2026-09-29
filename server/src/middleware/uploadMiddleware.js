@@ -3,9 +3,19 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const storage = multer.diskStorage({
+/**
+ * Determine storage strategy:
+ * - If Cloudinary is configured → use memoryStorage (buffer for cloud upload)
+ * - Otherwise → use diskStorage (local dev fallback)
+ */
+const useCloudinary = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+
+const diskStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Determine villageId and patientId
     const patientId = req.patient ? req.patient._id.toString() : 'unknown_patient';
     const villageId = req.patient && req.patient.villageId ? req.patient.villageId.toString() : 'unknown_village';
     
@@ -18,13 +28,14 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    // Generate filenames using a timestamp + random string
     const timestamp = Date.now();
     const randomString = crypto.randomBytes(8).toString('hex');
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `${timestamp}-${randomString}${ext}`);
   }
 });
+
+const memoryStorage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   // MIME-type whitelist: image/jpeg, image/png, application/pdf only
@@ -37,7 +48,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ 
-  storage, 
+  storage: useCloudinary ? memoryStorage : diskStorage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });

@@ -3,6 +3,7 @@ const AshaWorkerProfile = require('../models/AshaWorkerProfile');
 const User = require('../models/User');
 const PatientRecord = require('../models/PatientRecord');
 const bcrypt = require('bcryptjs');
+const { uploadToCloudinary, isConfigured: isCloudinaryConfigured } = require('../services/cloudinaryService');
 
 const getMyVillages = async (req, res) => {
   try {
@@ -105,19 +106,36 @@ const registerPatient = async (req, res) => {
   }
 };
 
+/**
+ * Resolve the file URL from an upload.
+ * If Cloudinary is configured, uploads the buffer and returns the cloud URL.
+ * Otherwise, returns a local /uploads/ path (for local dev only).
+ */
+const resolveFileUrl = async (req, type) => {
+  const patientId = req.patient._id;
+  const villageId = req.patient.villageId.toString();
+
+  if (isCloudinaryConfigured() && req.file.buffer) {
+    // Upload to Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: `rhcs/asha/${villageId}/${patientId}`,
+      resourceType: type === 'photo' ? 'image' : 'auto'
+    });
+    return result.url;
+  }
+
+  // Local dev fallback — construct local path
+  return `/uploads/asha/${villageId}/${patientId}/${req.file.filename}`;
+};
+
 const uploadPatientPhoto = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
     
-    // req.patient is set by verifyAshaPatientAccess
     const patientId = req.patient._id;
-    // URL relative to server root or public path (we can just serve /uploads static route later)
-    // For now, we store the local path or relative URL
-    // e.g. /uploads/asha/{villageId}/{patientId}/{filename}
-    const villageId = req.patient.villageId.toString();
-    const url = `/uploads/asha/${villageId}/${patientId}/${req.file.filename}`;
+    const url = await resolveFileUrl(req, 'photo');
 
     // Optionally attach it to the LATEST patient record for this user by this ASHA worker
     const latestRecord = await PatientRecord.findOne({ 
@@ -143,12 +161,10 @@ const uploadPatientReport = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
     
-    const patientId = req.patient._id;
-    const villageId = req.patient.villageId.toString();
-    const url = `/uploads/asha/${villageId}/${patientId}/${req.file.filename}`;
+    const url = await resolveFileUrl(req, 'report');
 
     const latestRecord = await PatientRecord.findOne({ 
-      patientId, 
+      patientId: req.patient._id, 
       collectedBy: req.user.id 
     }).sort({ createdAt: -1 });
 

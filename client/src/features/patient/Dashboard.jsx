@@ -80,12 +80,8 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     if (queueEntry) {
-      const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
-      
-      socket.emit('join_queue_room', queueEntry.doctorId);
-      
-      socket.on('queueUpdated', async () => {
-        // Queue changed, let's re-fetch the queue to find our exact position
+      // Vercel serverless fallback: Poll the queue every 10 seconds
+      const intervalId = setInterval(async () => {
         try {
           const res = await api.get(`/queue/${queueEntry.doctorId}`);
           const myEntry = res.data.find(q => q._id === queueEntry._id);
@@ -98,10 +94,10 @@ const PatientDashboard = () => {
         } catch (err) {
           console.error('Failed to refresh queue status', err);
         }
-      });
+      }, 10000);
 
       return () => {
-        socket.disconnect();
+        clearInterval(intervalId);
       };
     }
   }, [queueEntry]);

@@ -67,16 +67,13 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     if (profile?.verificationStatus === 'approved') {
-      const socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000');
-      
-      socket.emit('join_queue_room', user._id);
-      
-      socket.on('queueUpdated', () => {
+      // Vercel serverless fallback: Poll the queue every 10 seconds
+      const intervalId = setInterval(() => {
         fetchQueue(user._id);
-      });
+      }, 10000);
 
       return () => {
-        socket.disconnect();
+        clearInterval(intervalId);
       };
     }
   }, [profile]);

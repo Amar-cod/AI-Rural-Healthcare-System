@@ -94,7 +94,26 @@ const createPrescription = async (req, res) => {
 
     let fileUrl = null;
     try {
-      fileUrl = await generatePrescriptionPDF(prescription, patient, doctor);
+      const pdfBuffer = await generatePrescriptionPDF(prescription, patient, doctor);
+      
+      const { uploadToCloudinary, isConfigured: isCloudinaryConfigured } = require('../services/cloudinaryService');
+      
+      if (isCloudinaryConfigured()) {
+        const result = await uploadToCloudinary(pdfBuffer, {
+          folder: `rhcs/prescriptions/${patientId}`,
+          resourceType: 'raw' // PDF files use raw
+        });
+        fileUrl = result.url;
+      } else {
+        // Local dev fallback
+        const fs = require('fs');
+        const path = require('path');
+        const fileName = `prescription_${prescription._id}.pdf`;
+        const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        fs.writeFileSync(path.join(uploadDir, fileName), pdfBuffer);
+        fileUrl = `/uploads/${fileName}`;
+      }
       
       const report = new Report({
         patientId,
