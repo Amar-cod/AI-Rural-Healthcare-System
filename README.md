@@ -273,7 +273,7 @@ Follow this script to demonstrate the full capabilities of the system.
 ## ✍️ Author
 **Amar**
 B.Tech IT, Rungta College of Engineering and Technology, Bhilai
-[LinkedIn Placeholder] | [Email Placeholder]
+[] | [amarjaiswal1306@gmail.com]
 
 ## 📄 License
 This project is licensed under the MIT License.
