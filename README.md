@@ -524,7 +524,7 @@ git push origin feature/amazing-feature
     <td align="center">
       <strong>Amar</strong><br/>
       B.Tech IT, Rungta College of Engineering and Technology, Bhilai<br/>
-      <a href="https://github.com/Amar-cod">GitHub</a>
+      <a href="https://github.com/Amar-cod">GitHub</a> • <a href="mailto:amarjaiswal1306@gmail.com">amarjaiswal1306@gmail.com</a>
     </td>
   </tr>
 </table>
